@@ -1,0 +1,5 @@
+classes=1
+train = /home/srinivasan/cylinder/train.txt
+valid = /home/srinivasan/cylindertest.txt
+names = /home/smartcow/BPCL/BPCL_final/tracker/obj.names
+backup =/home/srinivasan/cylinder/backup
