@@ -1,0 +1,35 @@
+{
+	"personROI":{
+		"configPath":"/home/zestiot/Downloads/BPCL_integration/ROI/yolov4-tiny.cfg",
+		"weightPath":"/home/zestiot/Downloads/BPCL_integration/ROI/yolov4-tiny.weights",
+		"metaPath":"/home/zestiot/darknet/cfg/coco.data",
+		"confidence":"0.25"
+	},
+	"tracker":{
+		"weights":"/home/zestiot/Downloads/BPCL_integration/yolo_tracker/weights/yolov3-custom.tf",
+		"alert_flag":20,
+		"pixels":20
+	},
+	"camera1":"/home/zestiot/vvv.mp4",
+	"camera2":"/home/zestiot/Downloads/still.avi",
+	"qsize1":128,
+	"qsize2":"",
+	"Dalert_frame":3,
+	"Palert_frame":3,
+	"Dalert_time":30,
+	"Palert_time":30,
+	"Malert_frame":3,
+	"Malert_time":30,
+	"vid_duration":10,
+	"event_file":"/home/smartcow/BPCL/BPCL_final/last_event.txt",
+	"error_file":"/home/smartcow/BPCL/BPCL_final/error_file.txt",
+	"gpu_path":"/media/smartcow/LFS/",
+	"xy_tracker":{
+		"configPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny.cfg",
+		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny_best.weights",
+		"metaPath":"/home/smartcow/BPCL/BPCL_final/tracker/obj.data",
+		"alert_frame":20
+	}
+
+
+}
