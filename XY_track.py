@@ -1,3 +1,34 @@
+#   Copyright (C) 2020 by ZestIOT. All rights reserved. The information in this 
+#   document is the property of ZestIOT. Except as specifically authorized in 
+#   writing by ZestIOT, the receiver of this document shall keep the information
+#   contained herein confidential and shall protect the same in whole or in part from
+#   disclosure and dissemination to third parties. Disclosure and disseminations to 
+#   the receiver's employees shall only be made on a strict need to know basis.
+"""
+Input: image from camera, darknet image object, loaded network (darknet object), class_name 
+       (darknet object), trck_dict(dictionary with number of cylinders and their respective centroid 
+       coordinates),st_dict(number of cylinders in the first frame), count (number of frames),
+       cyl(cylinder number), moving(if cylinder is moving then True else False) 
+
+Output: trck_dict(dictionary with number of cylinders and their respective centroid coordinates),
+        st_dict(number of cylinders in the first frame), count (number of frames),
+        cyl(cylinder number), moving(if cylinder is moving then True else False) 
+
+User Requirement:
+1) Detecting if the cylinder are moving or not
+
+
+Requirements:
+1) This function takes the darknet image object, loaded network(darknet object), class name(darknet onject),
+   and image from the camera  which is first cropped in Region of inetrest(ROI) and then it is converted to 
+   the darknet image object which is passed to the loaded model with class names. The result is the detection 
+   of cylinder in each ROI, which basically provides the central coordinates of the bounding box detection of 
+   the respective object.
+2) Then we need to check if the cylinders are moving or not by the monement of coordinates of the detection over some frames.
+3) If there is no movement for certain frames then we know the cylinfers are not moving.
+"""
+
+
 import darknet
 import cv2
 import error

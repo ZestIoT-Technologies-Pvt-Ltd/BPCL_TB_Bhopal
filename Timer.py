@@ -1,3 +1,52 @@
+#   Copyright (C) 2020 by ZestIOT. All rights reserved. The information in this 
+#   document is the property of ZestIOT. Except as specifically authorized in 
+#   writing by ZestIOT, the receiver of this document shall keep the information
+#   contained herein confidential and shall protect the same in whole or in part from
+#   disclosure and dissemination to third parties. Disclosure and disseminations to 
+#   the receiver's employees shall only be made on a strict need to know basis.
+"""
+timer function
+Input: algo(which event is being considered Person in ROI, view direction, motion of the person),
+       flag(if the event is true in the particular frame or not), cam(cv2 camera feed object)
+variables: Pdetect(it increments when flag is true in the frame),Pcheck(flag to start buffer time when flag is False),
+           Ptimer(flag to start Actual Alert timer),Pst_time(start time for buffer time),Ptrigger(start time for Alert Timer).
+           Palert_frame(number of false positives to be considered before resetting the Timer),
+           Palert_time(duration of the timer),Pflag(if the erue or false for the particular frame)
+Note: variables are similar for all three events
+
+User Requirements:
+1} Start Timer and Raise Alarm when person is not attentive.
+
+Requirements:
+1) check if the flag is true or false for the given event/algo
+2) If the flag is false for continuosly for buffer time(2 seconds or more) then initiate the timer
+3) I fthe flag is still false for the Timer period(Palert_time) than we call the event function
+4) In between if the person comes back then we restart the process
+
+Start_video function
+Input: event name and cam (cv2 camera feed object),
+variable: vid_path(path of the video on device to sent with event api call),
+Requirement: 
+1) start saving camera feed into a video when timer has started for any event upto video duration time
+
+event_call function
+Input: event name
+Requirements
+1) it create a Clientsocket object with unique device id
+2) sends the Event information with Timestamp and the path of the video to the Pi device
+
+video_trigger function
+Input: cam(cv2 camera feed object)
+Requirements:
+1)It checks if the Timer for any event Alert has been started.
+2) Checks if a folder has been created  for today or not.
+3) If not it creates a folder 
+4) if the Timer has started then it create a thread for saving a video(Start_video)
+
+
+
+"""
+
 from datetime import datetime,timedelta
 from sockets import ClientSocket
 import json
@@ -22,7 +71,9 @@ def start_video(event,cam):
 	global Dtimer,Ptimer,Mtimer,vid_path
 	event_out=cv2.VideoWriter(vid_path,fourcc, 10, (1280,720), True)
 	vid_end_time=datetime.now()+timedelta(seconds=vid_duration)
-	while (Dtimer > 0 or Ptimer > 0 or Mtimer > 0) and datetime.now() < vid_end_time:
+	while (Dtimer > 0 or Ptimer > 0 or Mtimer > 0):
+		if datetime.now()>vid_end_time:
+			break
 		img=cam.get_frame()
 		encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
 		result, encimg = cv2.imencode('.jpg',img, encode_param) #Encoding frame
@@ -34,14 +85,14 @@ def event_call(event):
 	sc=ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
 	try:
 		logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-		print("video Path {}".format(vid_path))
-		data={'event_time':logdate}
+		#print("video Path {}".format(vid_path))
+		data={'event_time':logdate,'path':vid_path}
 		sc.send(time_stamp=logdate, message_type=event, data=data)
 		msg = sc.receive()
 		print(msg)
 		try:
-			print("Event call before success check",msg["data"]["status"])
-			print(type(int(msg["data"]["status"])))
+			#print("Event call before success check",msg["data"]["status"])
+			#print(type(int(msg["data"]["status"])))
 
 			if int(msg["data"]["status"]) == 200:
 				print("API success")

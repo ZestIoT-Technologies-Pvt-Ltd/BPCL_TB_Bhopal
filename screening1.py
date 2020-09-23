@@ -4,13 +4,17 @@ import socket
 import struct
 import time
 import pickle
+import error
 #import zlib
 import sys
+try:
+	client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	client_socket.connect(('192.168.1.132', 8097))
+	connection = client_socket.makefile('wb')
+	encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
+except Exception as e:
+	error.raised("8",str(e))
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('192.168.1.132', 8097))
-connection = client_socket.makefile('wb')
-encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
 def screening(frame):
 	try:
 		result, frame = cv2.imencode('.jpg', frame, encode_param)
