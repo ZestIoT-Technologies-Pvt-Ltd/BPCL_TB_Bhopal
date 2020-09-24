@@ -10,10 +10,8 @@
 		"alert_flag":20,
 		"pixels":20
 	},
-	"camera1":"/home/zestiot/vvv.mp4",
-	"camera2":"/home/zestiot/Downloads/still.avi",
-	"qsize1":128,
-	"qsize2":"",
+	"camera1":"rtsp://192.168.1.21/ch01.264",
+	"camera2":"rtsp://192.168.1.51/av0_0",
 	"Dalert_frame":3,
 	"Palert_frame":3,
 	"Dalert_time":30,

@@ -43,8 +43,6 @@ Requirements:
 3) If not it creates a folder 
 4) if the Timer has started then it create a thread for saving a video(Start_video)
 
-
-
 """
 
 from datetime import datetime,timedelta
@@ -91,17 +89,15 @@ def event_call(event):
 		msg = sc.receive()
 		print(msg)
 		try:
-			#print("Event call before success check",msg["data"]["status"])
-			#print(type(int(msg["data"]["status"])))
-
 			if int(msg["data"]["status"]) == 200:
 				print("API success")
 		except Exception as e:
 			print("Error while calling API")
-			#error("7",str(e))
-			return  loc
-	except KeyboardInterrupt:
-		sc.close()
+			er=er+1
+			if er < 4:
+				time.sleep(1)
+				event_call(event)
+			error.raised("7",str(e))
 	except Timeout:
 		pass
 
@@ -237,7 +233,7 @@ def timer(algo,flag,cam):
 			return(Mflag)
 	except Exception as e:
 		print (str(e),"error in timer")
-		#error("7",str(e))
+		error.raised("7",str(e))
 
 def video_trigger(cam):
 	global vid_path
@@ -261,4 +257,4 @@ def video_trigger(cam):
 			video.start()
 	except Exception as e:
 		print (str(e),"error in timer")
-		#error("7",str(e))
+		error.raised("7",str(e))
