@@ -14,11 +14,13 @@
 	"camera2":"rtsp://192.168.1.51/av0_0",
 	"Dalert_frame":3,
 	"Palert_frame":3,
-	"Dalert_time":30,
-	"Palert_time":30,
 	"Malert_frame":3,
-	"Malert_time":30,
-	"vid_duration":10,
+	"Person_ROI_unavailable":30,
+	"Person_ROI_rectify":30,
+	"Person_not_attentive":30,
+	"Person_attentive_rectify":30,
+	"water_check_period":2,
+	"vid_duration":20,
 	"event_file":"/home/smartcow/BPCL/BPCL_final/last_event.txt",
 	"error_file":"/home/smartcow/BPCL/BPCL_final/error_file.txt",
 	"gpu_path":"/media/smartcow/LFS/",
@@ -27,7 +29,7 @@
 		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny_best.weights",
 		"metaPath":"/home/smartcow/BPCL/BPCL_final/tracker/obj.data",
 		"alert_frame":20
-	}
-
-
+	},
+	"End_time":"17:30:00",
+	"Start_time":"09:30:00"
 }

@@ -2,7 +2,7 @@ import time
 from sockets import ClientSocket
 from pynng import Timeout
 from datetime import datetime, timedelta
-from subprocess import Popen, PIPE, check_output
+from subprocess import Popen, PIPE
 """
 Input: error_file,event file
 Output: returns Devices Health information including RAM, CPU usage, GPU usage , Temperature of various components, Last error and event ocurred,disk space, external memory, Device uptime and last reboot time.
@@ -89,15 +89,7 @@ def health():
         last_reboot = last_start[-2].split("\n")[0][6:]
         #print last_start
         #print("\nLast Reboot took place at {}\nDevice has been active for {}".format(last_reboot,last_duration))
-        reboot=Popen(['last','reboot'],stdout=PIPE)
-        reboot=(reboot.communicate()[0]).decode('ascii')
-        #print (reboot)
-        date=(datetime.now()-timedelta(days=1)).strftime("%a %b %d %Y %H:%M")
-        if 'reboot' in reboot.split(" "):
-                #date=(datetime.now()-timedelta(days=1))
-                reboot=reboot.split(" ")
-        else:
-                print("No Reboot in last 24 hours from {}".format(date))
+        
         data={'Total_RAM':t_RAM,'Used_RAM':u_RAM,"CPU1":cpu1,"CPU2":cpu2,"CPU3":cpu3,"CPU4":cpu4,"CPU5":cpu5,"CPU6":cpu6,"GPU":gpu,"AUX":AUX,"CPU":CPU,"TGPU":GPU_t,"AO":AO,"PMIC":PMIC,"thermal":thermal,"Memory_left":mem_left,"Memory_percentage":mem_percentage,"Total_memory":total_memory,"External_memory":ext_memory,"Last_Reboot":last_reboot,"Up_Time":last_duration,"Last_Event":event_code,"Last_Event_Time":event_time,"Error":error,"Error_Algo":error_algo,"Error_Time":error_time}
         print (data)
         return data
@@ -113,10 +105,17 @@ def apicall():
         #time.sleep(2)
         msg = sc.receive()
         print(msg)
-    except KeyboardInterrupt:
-        sc.close()
+        try:
+            if int(msg["data"]["status"]) == 200:
+                print("API success")
+        except Exception as e:
+            print("Error while calling API")
+            er=er+1
+            if er < 4:
+                time.sleep(1)
+                event_call(event)
+            error.raised("7",str(e))
     except Timeout:
         pass
-    #time.sleep(10)
-if __name__ == '__main__':
-    apicall()
+    except Exception as e:
+        error.raised("8",str(e))

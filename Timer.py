@@ -56,7 +56,10 @@ import os
 config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"
 with open(config) as json_data:
 	info=json.load(json_data)
-	Palert_frame,Palert_time,Dalert_frame,Dalert_time,Malert_frame,Malert_time = info["Palert_frame"],info["Palert_time"],info["Dalert_frame"], info["Dalert_time"],info['Malert_frame'],info["Malert_time"]
+	Palert_frame,Dalert_frame,Malert_frame= info["Palert_frame"],info["Dalert_frame"],info['Malert_frame']
+	Palert_time,Dalert_time=info["Person_ROI_unavailable"], info["Person_not_attentive"]
+	Roi_rectify,attentive_rectify=info["Person_ROI_rectify"],info["Person_attentive_rectify"]
+	Malert_time=Dalert_time
 	vid_duration,event_file,gpu_path= info["vid_duration"], info["event_file"],info["gpu_path"]
 
 Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger = 0,0,0,0,0
