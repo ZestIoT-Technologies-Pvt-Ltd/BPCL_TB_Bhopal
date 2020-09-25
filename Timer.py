@@ -62,9 +62,9 @@ with open(config) as json_data:
 	Malert_time=Dalert_time
 	vid_duration,event_file,gpu_path= info["vid_duration"], info["event_file"],info["gpu_path"]
 
-Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger = 0,0,0,0,0
-Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger = 0,0,0,0,0
-Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger = 0,0,0,0,0
+Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback = 0,0,0,0,0,0,0
+Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback = 0,0,0,0,0,0,0
+Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback = 0,0,0,0,0,0,0
 vid_path="/home/"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
@@ -87,7 +87,10 @@ def event_call(event):
 	try:
 		logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
 		#print("video Path {}".format(vid_path))
-		data={'event_time':logdate,'path':vid_path}
+		if event[-3:] == 'OFF':
+			data={'event_time':logdate}
+		else:
+			data={'event_time':logdate'path':vid_path}
 		sc.send(time_stamp=logdate, message_type=event, data=data)
 		msg = sc.receive()
 		print(msg)
@@ -115,15 +118,20 @@ def timer(algo,flag,cam):
 				Pcheck = 0
 				Pdetect = Pdetect +1
 				if Ptimer != 0 and Pdetect > Palert_frame:
-					with open(event_file,'w') as efile:
-						#efile.write("EVENT21_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
-						efile.write("EVENT21_OFF")
-					if Ptimer == 2 :
-						vid_file=event_call("EVENT21_OFF")
+					if Ptimer ==1:
+						Ptimer=0					
+					if Ptimer == 2:
+						Prectify =datetime.now()
+						Ptimer=0
+						Pback =1
+					if Pback == 1 and datetime.now() > Prectify + timedelta(seconds=Roi_rectify):
+						with open(event_file,'w') as efile:
+							efile.write("EVENT21_OFF :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
+						event_call("EVENT21_OFF")
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
 						print("*********  Rectification!!! Person in ROI  ******* Time : " , current_time)
-					Ptimer = 0
+						Ptimer,Pback=0,0
 			else:
 				print("ptimer",Ptimer,Pcheck,Pdetect, Palert_frame)
 				if Pcheck == 0 and Ptimer == 0:
@@ -132,6 +140,7 @@ def timer(algo,flag,cam):
 				if datetime.now() > Pst_time + timedelta(seconds=2) and Ptimer == 0 and Pcheck == 1:
 					Pflag = False
 					Ptimer=1
+					Pback=0
 					video_trigger(cam)
 					Pdetect=0
 					Ptrigger=datetime.now()
@@ -142,7 +151,7 @@ def timer(algo,flag,cam):
 				elif Ptimer ==1 and Pdetect <= Palert_frame and datetime.now() > Ptrigger + timedelta(seconds=Palert_time):
 					with open(event_file,'w') as efile:
 						#efile.write("EVENT21_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
-						efile.write("EVENT21_ON")
+						efile.write("EVENT21_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT21_ON")
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
@@ -158,15 +167,20 @@ def timer(algo,flag,cam):
 				Ddetect = Ddetect +1
 				
 				if Dtimer != 0 and Ddetect >= Dalert_frame:
-					with open(event_file,'w') as efile:
-						#efile.write("EVENT21_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
-						efile.write("EVENT22_OFF")
-					if Dtimer == 2 :		
+					if Dtimer ==1:
+						Dtimer=0
+					elif Dtimer == 2:
+						Dback=1
+						Drectify=datetime.now()
+						Dtimer=0
+					elif Dback ==1 and datetime.now() > Drectify +timedelta(seconds=attentive_rectify):
+						with open(event_file,'w') as efile:
+							efile.write("EVENT22_OFF :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))		
 						vid_file=event_call("EVENT22_OFF")
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
 						print("*********  Rectification!!! Person is attentive  ******* Time : " , current_time)
-					Dtimer = 0
+						Dtimer,Dback = 0,0
 			else:
 				if Dcheck == 0 and Dtimer == 0:
 					Dst_time =datetime.now()
@@ -174,6 +188,7 @@ def timer(algo,flag,cam):
 				if datetime.now() > Dst_time + timedelta(seconds=2) and Dtimer == 0 and Dcheck == 1:
 					flag = False
 					Dtimer=1
+					Dback=0
 					video_trigger(cam)
 					Ddetect=0
 					Dtrigger=datetime.now()
@@ -184,7 +199,7 @@ def timer(algo,flag,cam):
 				elif Dtimer ==1 and Ddetect <= Dalert_frame and datetime.now() > Dtrigger + timedelta(seconds=Dalert_time):
 					with open(event_file,'w') as efile:
 						#efile.write("EVENT22_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
-						efile.write("EVENT22_ON")
+						efile.write("EVENT22_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT22_ON")
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
@@ -199,15 +214,18 @@ def timer(algo,flag,cam):
 				Mdetect = Mdetect +1
 				
 				if Mtimer != 0 and Mdetect >= Malert_frame:
-					with open(event_file,'w') as efile:
-						#efile.write("EVENT21_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
-						efile.write("EVENT23_OFF")
-					if Mtimer == 2 :				
+					if Mtimer == 1:
+						Mtimer=0
+					elif Mtimer == 2 :
+						Mback =1
+						Mrectify=datetime.now()
+						Mtimer=0
+					elif Mback ==1 and datetime.now() > Mrectify +timedelta(seconds=attentive_rectify) 				
 						vid_file=event_call("EVENT23_OFF")
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
 						print("*********  Rectification!!! Person is attentive  ******* Time : " , current_time)
-					Mtimer = 0
+						Mtimer = 0
 			else:
 				if Mcheck == 0 and Mtimer == 0:
 					Mst_time =datetime.now()
@@ -215,6 +233,7 @@ def timer(algo,flag,cam):
 				if datetime.now() > Mst_time + timedelta(seconds=5) and Mtimer == 0 and Mcheck == 1:
 					flag = False
 					Mtimer=1
+					Mback=0
 					video_trigger(cam)
 					Mdetect=0
 					Mtrigger=datetime.now()
@@ -226,7 +245,7 @@ def timer(algo,flag,cam):
 				if Mtimer ==1 and Mdetect <= Malert_frame and datetime.now() > Mtrigger + timedelta(seconds=Malert_time):
 					with open(event_file,'w') as efile:
 						#efile.write("EVENT23_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
-						efile.write("EVENT23_ON")
+						efile.write("EVENT23_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT23_ON")
 					timer6 = "ALERT!!! Motion is not detected"
 					current_time = datetime.now()
