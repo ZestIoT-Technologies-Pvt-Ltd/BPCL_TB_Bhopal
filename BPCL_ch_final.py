@@ -1,3 +1,25 @@
+'''
+#   Copyright (C) 2020 by ZestIOT. All rights reserved. The
+#   information in this document is the property of ZestIOT. Except
+#   as specifically authorized in writing by ZestIOT, the receiver
+#   of this document shall keep the information contained herein
+#   confidential and shall protect the same in whole or in part from
+#   disclosure and dissemination to third parties. Disclosure and
+#   disseminations to the receiver's employees shall only be made on
+#   a strict need to know basis.
+
+Input: The model takes input from two cameras, one camera is used to find whether the cylinder bed is moving or not and the other one is used to find person attentiveness
+Output: The model sends the alarm values to the timer function based on person attentiveness
+Requirements:
+This function shall perform the following:
+1)This function calls the track method passing the input feed of camera located over the cylinder bed, the track function returns whether the cylinder bed is moving or not.
+2)If the cylinder bed is moving, the input feed of camera contains the person who needs to look after the cylinders is sent to posenet model.
+3)From posenet model the person pose is estimated and the person landmark coordinates and their respective scores are returned.
+4)The roi_fun returns the coordinates of persons who are in ROI,those coordinates are sent to view_detection and the method returns the coordinates of persons who are viewing in required direction.
+5)The view_angle method plots the conical shape stating which side they were looking and the coordinates are passed to motion function which return whether the person whos is in ROI and viewing in required direction is in motion or not.
+6)Based on the output of the ROI,view,motion methods the respective flags are sent to timer function.
+7)The Diagnostics methods finds the devices are in proper working condition or not.
+'''    
 import cv2
 from queue import Queue
 import traceback
@@ -20,8 +42,8 @@ import Timer
 import Angle
 import error
 import Health_Api
-import check1
-import check2
+import screening2
+import screening1
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=int, default=101)
 parser.add_argument('--scale_factor', type=float, default=1.0)
@@ -118,57 +140,27 @@ if __name__ == '__main__':
 					max_pose_detections=5,
 					min_pose_score=0.2)
 				keypoint_coords *= output_scale
-				rr = 0
-				vv = 0
-				mm = 0
-				ROI_per = [0,0,0,0,0]
-				for person in range(0,5):
-					confdnc = round(keypoint_scores[person][0],4)
-					if confdnc != 0.0:
-						list_roi=[]
-						list_motion = []
-						for body_point in [0,5,6,9,10,13,14,15,16]:
-							ll=[0,0]
-							if round(keypoint_scores[person][body_point],4) >= 0.1:
-								ll[0]=round(keypoint_coords[person][body_point][0],4)
-								ll[1]=round(keypoint_coords[person][body_point][1],4)
-							else:
-								ll[0] = -1
-								ll[1] = -1
-							if body_point in (13,14,15,16):
-								list_roi.append(ll)
-							else:
-								list_motion.append(ll)
-						roi = Roi.roi_fun(list_roi)
-						if roi == True:
-							rr=1
-							ROI_per[person] = 1
-							view = View.view_detection(keypoint_scores[person][0], keypoint_coords[person][0][0], keypoint_coords[person][0][1], keypoint_coords[person][1][1], 
-								keypoint_coords[person][2][1], keypoint_scores[person][3],keypoint_scores[person][4],keypoint_coords[person][5][0],keypoint_scores[person][2], keypoint_scores[person][1]  )
-							if view == True:
-								vv = 1
-								img1 = Angle.view_angle(keypoint_scores[person][0],keypoint_scores[person][3],keypoint_scores[person][4],
-									keypoint_coords[person][0][0],keypoint_coords[person][0][1],keypoint_coords[person][3][0],keypoint_coords[person][3][1],
-									keypoint_coords[person][4][0],keypoint_coords[person][4][1],keypoint_coords[person][5][0],keypoint_coords[person][5][1],
-									keypoint_coords[person][6][0],keypoint_coords[person][6][1], img1)
-							r=Motion.motion(list_motion,person)
-							if r == True:
-								mm = 1
-				if rr == 1:
+                
+				view_coords,view_scores,number_roi=Roi.roi_fun(keypoint_coords,keypoint_scores)
+				motion_coords,motion_scores,number_view=View.view_detection(view_coords,view_scores,number_roi)
+				img1 = Angle.view_angle(motion_coords,motion_scores,number_view,img1)
+				number_motion=Motion.motion(motion_coords,motion_scores,number_view)
+                
+				if number_roi >= 1:
 					fff = Timer.timer("person",True,cam)
-				if rr == 0:
+				if number_roi == 0:
 					fff = Timer.timer("person",False,cam)
-				if rr == 1 and vv == 1:
+				if number_roi >= 1 and number_view >= 1:
 					fff = Timer.timer("direction",True,cam)
-				if rr == 1 and vv == 0:
+				if number_roi >= 1 and number_view == 0:
 					fff = Timer.timer("direction",False,cam)
-				if rr == 1 and vv == 1 and mm == 1:
+				if number_roi >= 1 and number_view >= 1 and number_motion == 1:
 					fff = Timer.timer("motion",True,cam)
-				if rr == 1 and vv ==  1 and mm == 0:
+				if number_roi >= 1 and number_view >=  1 and number_motion == 0:
 					fff = Timer.timer("motion", False,cam)
-				rrr = " ROI " + str(rr)
-				vvv = " View " + str(vv)
-				mmm = " Motion " + str(mm)
+				rrr = " ROI " + str(number_roi)
+				vvv = " View " + str(number_view)
+				mmm = " Motion " + str(number_motion)
 				current_time = datetime.now()
 				current_time = str(current_time)[10:]
 				print(current_time)
@@ -186,8 +178,8 @@ if __name__ == '__main__':
 				#cv2.imwrite(path,overlay_image)
 				#kk = kk + 1
 				overlay_image = cv2.resize(overlay_image,(640,480))
-				screening1.screening(overlay_image)
-				screening2.screening(img2) 
+				#check1.screening(overlay_image)
+				#check2.screening(img2) 
 				cv2.imshow("frame",overlay_image)
 				if cv2.waitKey(1) & 0xFF == ord('q'):
 					break
@@ -195,6 +187,8 @@ if __name__ == '__main__':
 				health = Thread(target=Diagnostics,args=())
 				health.start()
 				ht_time=datetime.now()+timedelta(minutes=5)
+			screening1.screening(img1)
+			screening2.screening(img2)
 	except Exception as e:
 		print(str(e))
 		traceback.print_exc()
