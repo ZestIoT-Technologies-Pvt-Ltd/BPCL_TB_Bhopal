@@ -3,6 +3,7 @@ from sockets import ClientSocket
 from pynng import Timeout
 from datetime import datetime, timedelta
 from subprocess import Popen, PIPE
+import error
 """
 Input: error_file,event file
 Output: returns Devices Health information including RAM, CPU usage, GPU usage , Temperature of various components, Last error and event ocurred,disk space, external memory, Device uptime and last reboot time.
@@ -95,7 +96,15 @@ def health():
         return data
 
 def apicall():
-    sc = ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
+    try:
+        sc = ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
+    except Exception as e:
+        er=er+1
+        if er < 4:
+            time.sleep(1)
+            apicall(event)
+        error.raised("7",str(e))
+
     #while True:
     try:
         #data = {'key': 'value'}
@@ -105,17 +114,9 @@ def apicall():
         #time.sleep(2)
         msg = sc.receive()
         print(msg)
-        try:
-            if int(msg["data"]["status"]) == 200:
-                print("API success")
-        except Exception as e:
-            print("Error while calling API")
-            er=er+1
-            if er < 4:
-                time.sleep(1)
-                event_call(event)
-            error.raised("7",str(e))
-    except Timeout:
-        pass
+        if int(msg["data"]["status"]) == 200:
+            print("API success")
+        else:
+            error.raised("8","API failed")
     except Exception as e:
         error.raised("8",str(e))

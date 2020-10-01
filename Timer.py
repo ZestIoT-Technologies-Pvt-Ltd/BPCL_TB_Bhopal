@@ -62,9 +62,9 @@ with open(config) as json_data:
 	Malert_time=Dalert_time
 	vid_duration,event_file,gpu_path= info["vid_duration"], info["event_file"],info["gpu_path"]
 
-Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback = 0,0,0,0,0,0,0
-Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback = 0,0,0,0,0,0,0
-Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback = 0,0,0,0,0,0,0
+Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,false_positive_time = 0,0,0,0,0,0,0,0
+Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback,false_positive_time = 0,0,0,0,0,0,0,0
+Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback,false_positive_time = 0,0,0,0,0,0,0,0
 vid_path="/home/"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
@@ -83,29 +83,31 @@ def start_video(event,cam):
 
 def event_call(event):
 	global vid_path
-	sc=ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
+	try:
+		sc=ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
+	except Exception as e:
+		er=er+1
+		if er < 4:
+			time.sleep(1)
+			event_call(event)
+		error.raised("7",str(e))
+
 	try:
 		logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
 		#print("video Path {}".format(vid_path))
 		if event[-3:] == 'OFF':
 			data={'event_time':logdate}
 		else:
-			data={'event_time':logdate'path':vid_path}
+			data={'event_time':logdate,'path':vid_path}
 		sc.send(time_stamp=logdate, message_type=event, data=data)
 		msg = sc.receive()
 		print(msg)
-		try:
-			if int(msg["data"]["status"]) == 200:
-				print("API success")
-		except Exception as e:
-			print("Error while calling API")
-			er=er+1
-			if er < 4:
-				time.sleep(1)
-				event_call(event)
-			error.raised("7",str(e))
-	except Timeout:
-		pass
+		if int(msg["data"]["status"]) == 200:
+			print("API success")
+		else:
+			error.raised("8","API failed")
+	except Exception as e:
+		error.raised("8",str(e))
 
 
 def timer(algo,flag,cam):
@@ -144,6 +146,7 @@ def timer(algo,flag,cam):
 					video_trigger(cam)
 					Pdetect=0
 					Ptrigger=datetime.now()
+					false_positive_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********** Person Timer Started ******* Time : ", current_time)
@@ -157,8 +160,9 @@ def timer(algo,flag,cam):
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!! Person not in ROI  ******* Time : " , current_time)
 					Ptimer = 2
-					
-			return(Pflag)
+
+				elif Ptimer==1 and datetime.now() >false_positive_time+ timedelta(seconds=3):
+					Pdetect=0
 
 		if algo == "direction":
 			Dflag = flag
@@ -192,6 +196,7 @@ def timer(algo,flag,cam):
 					video_trigger(cam)
 					Ddetect=0
 					Dtrigger=datetime.now()
+					false_positive_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********** Direction Timer Started ***** Time : ", current_time)
@@ -204,8 +209,9 @@ def timer(algo,flag,cam):
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!!   not looking in that direction ***** Time : ", current_time)
-					Dtimer = 2		
-			return(Dflag)
+					Dtimer = 2
+				elif Dtimer==1 and datetime.now() >false_positive_time + timedelta(seconds=3):
+					Ddetect=0	
 
 		if algo == "motion":
 			Mflag = flag
@@ -220,7 +226,7 @@ def timer(algo,flag,cam):
 						Mback =1
 						Mrectify=datetime.now()
 						Mtimer=0
-					elif Mback ==1 and datetime.now() > Mrectify +timedelta(seconds=attentive_rectify) 				
+					elif Mback ==1 and datetime.now() > Mrectify +timedelta(seconds=attentive_rectify):			
 						vid_file=event_call("EVENT23_OFF")
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
@@ -237,12 +243,13 @@ def timer(algo,flag,cam):
 					video_trigger(cam)
 					Mdetect=0
 					Mtrigger=datetime.now()
+					false_positive_time=datetime.now()
 					timer5 = "Motion Timer Started"
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********** Motion Timer Started *** Time : ", current_time)
 
-				if Mtimer ==1 and Mdetect <= Malert_frame and datetime.now() > Mtrigger + timedelta(seconds=Malert_time):
+				elif Mtimer ==1 and Mdetect <= Malert_frame and datetime.now() > Mtrigger + timedelta(seconds=Malert_time):
 					with open(event_file,'w') as efile:
 						#efile.write("EVENT23_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT23_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
@@ -252,10 +259,12 @@ def timer(algo,flag,cam):
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!!   Motion is not detected *** Time :", current_time)
 					Mtimer = 2
-			return(Mflag)
+				elif Mtimer==1 and datetime.now() >false_positive_time + timedelta(seconds=3):
+					Mdetect=0
+
 	except Exception as e:
 		print (str(e),"error in timer")
-		error.raised("7",str(e))
+		error.raised("9",str(e))
 
 def video_trigger(cam):
 	global vid_path
@@ -279,4 +288,4 @@ def video_trigger(cam):
 			video.start()
 	except Exception as e:
 		print (str(e),"error in timer")
-		error.raised("7",str(e))
+		error.raised("9",str(e))

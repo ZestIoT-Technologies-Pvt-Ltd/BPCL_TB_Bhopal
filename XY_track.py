@@ -36,6 +36,7 @@ from datetime import datetime, timedelta
 import traceback
 import numpy as np
 font = cv2.FONT_HERSHEY_SIMPLEX
+
 def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,moving):
 	try:
 		obj=cyl
@@ -60,23 +61,23 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 				for key in track_dict:
 					if abs(xm - int(track_dict[key]['xco'])) < diff_pixel:
 						cyl_dict={}
-						flag=track_dict[key]["flag"]+1
-						cyl_dict[key]={'xco':xm,'yco':ym,'flag':flag}
+						cyl_dict[key]={'xco':xm,'yco':ym}
 						break
 					else:
 						obj= cyl+1
-						cyl_dict[obj]={'xco':xm,'yco':ym,'flag':0}
+						cyl_dict[obj]={'xco':xm,'yco':ym}
 
 				track_dict.update(cyl_dict)
 				cyl=obj
 				cyl_dict={}
 
 			if cyl == 0:
-				track_dict[cyl]={'xco':xm,'yco':ym,'flag':0}
+				track_dict[cyl]={'xco':xm,'yco':ym}
 				cyl=cyl+1
 		#print(track_dict,count,st_dict,moving,cyl)
 		count=count+1
 		if count == 1:
+			start_time=datetime.now()
 			st_dict=len(track_dict)
 		if len(track_dict) > st_dict:
 			moving = True
@@ -84,7 +85,7 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 			cyl=0
 			count=0
 
-		if count > 40 and len(track_dict) == st_dict:
+		if datetime.now() > start_time+timedelta(seconds=2) and len(track_dict) == st_dict:
 			moving = False
 			track_dict={}
 			cyl=0

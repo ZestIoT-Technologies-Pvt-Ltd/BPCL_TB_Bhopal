@@ -96,16 +96,16 @@ if __name__ == '__main__':
 		output_stride = model_cfg['output_stride']
 		darknet_image_T,network_T,class_names_T=tracker_model.load_model()
 		print("Tracker model loaded")
-		cam = camera(cam1)
+		cam1 = camera(cam1)
 		time.sleep(1)
-		cam1 = camera(cam2)
+		cam2 = camera(cam2)
 		time.sleep(1)
 		ht_time=datetime.now()
-		kk = 0
+		#kk = 0
 		while True:
-			img1 = cam.get_frame()
+			img1 = cam1.get_frame()
 			img1 = cv2.resize(img1,(1280,720))
-			img2 = cam1.get_frame()
+			img2 = cam2.get_frame()
 			img2 = cv2.resize(img2,(1280,720))
 			#ret,img1 = cam.read()
 			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img2,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
@@ -130,20 +130,20 @@ if __name__ == '__main__':
 				number_motion=Motion.motion(motion_coords,motion_scores,number_view)
                 
 				if number_roi >= 1:
-					fff = Timer.timer("person",True,cam)
+					Timer.timer("person",True,cam1)
 				if number_roi == 0:
-					fff = Timer.timer("person",False,cam)
+					Timer.timer("person",False,cam1)
 				if number_roi >= 1 and number_view >= 1:
-					fff = Timer.timer("direction",True,cam)
+					Timer.timer("direction",True,cam1)
 				if number_roi >= 1 and number_view == 0:
-					fff = Timer.timer("direction",False,cam)
+					Timer.timer("direction",False,cam1)
 				if number_roi >= 1 and number_view >= 1 and number_motion == 1:
-					fff = Timer.timer("motion",True,cam)
+					Timer.timer("motion",True,cam1)
 				if number_roi >= 1 and number_view >=  1 and number_motion == 0:
-					fff = Timer.timer("motion", False,cam)
-				rrr = " ROI " + str(number_roi)
-				vvv = " View " + str(number_view)
-				mmm = " Motion " + str(number_motion)
+					Timer.timer("motion", False,cam1)
+				Roi_draw = " ROI " + str(number_roi)
+				View_draw = " View " + str(number_view)
+				Motion_draw = " Motion " + str(number_motion)
 				current_time = datetime.now()
 				current_time = str(current_time)[10:]
 				print(current_time)
@@ -153,9 +153,9 @@ if __name__ == '__main__':
 				pts = np.array([[362,618],[617,588],[710,637],[419,687]], np.int32)
 				pts = pts.reshape((-1,1,2))
 				cv2.polylines(img1,[pts],True,(0,0,255))
-				overlay_image = cv2.putText(img1, rrr , (20,70), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
-				overlay_image = cv2.putText(img1, vvv , (20,120), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
-				overlay_image = cv2.putText(img1, mmm , (20,170), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
+				overlay_image = cv2.putText(img1, Roi_draw , (20,70), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
+				overlay_image = cv2.putText(img1, View_draw , (20,120), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
+				overlay_image = cv2.putText(img1, Motion_draw , (20,170), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
 				path = "/home/zestiot/Downloads/BPCL_final/save/"
 				path = path + str(kk) + ".jpg"
 				#cv2.imwrite(path,overlay_image)
