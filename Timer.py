@@ -161,7 +161,7 @@ def timer(algo,flag,cam):
 					print("*********  ALERT!!! Person not in ROI  ******* Time : " , current_time)
 					Ptimer = 2
 
-				elif Ptimer==1 and datetime.now() >false_positive_time+ timedelta(seconds=3):
+				elif Ptimer==1 and datetime.now() >false_positive_time+ timedelta(seconds=5):
 					Pdetect=0
 
 		if algo == "direction":
@@ -210,7 +210,7 @@ def timer(algo,flag,cam):
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!!   not looking in that direction ***** Time : ", current_time)
 					Dtimer = 2
-				elif Dtimer==1 and datetime.now() >false_positive_time + timedelta(seconds=3):
+				elif Dtimer==1 and datetime.now() >false_positive_time + timedelta(seconds=5):
 					Ddetect=0	
 
 		if algo == "motion":
@@ -259,7 +259,7 @@ def timer(algo,flag,cam):
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!!   Motion is not detected *** Time :", current_time)
 					Mtimer = 2
-				elif Mtimer==1 and datetime.now() >false_positive_time + timedelta(seconds=3):
+				elif Mtimer==1 and datetime.now() >false_positive_time + timedelta(seconds=5):
 					Mdetect=0
 
 	except Exception as e:

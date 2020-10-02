@@ -27,9 +27,8 @@ encode_param = This variable shall be used to change the quality of the frame
 
 '''
 
-
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 def connect():
-	client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	try:
 		client_socket.connect(('192.168.1.132', 8097))
 		connection = client_socket.makefile('wb')

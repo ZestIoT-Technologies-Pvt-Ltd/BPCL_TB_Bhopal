@@ -1,7 +1,7 @@
 cd /home/siddharth/BPCL_Bhopal_ch_final/
 
-end_time=$(jq '.End_time' BPCL_config.json | tr -d \")
-start_time=$(jq '.Start_time' BPCL_config.json| tr -d \")
+end_time=$(jq '.Plant_end_time' BPCL_config.json | tr -d \")
+start_time=$(jq '.Plant_start_time' BPCL_config.json| tr -d \")
 end=$(date -d $end_time +%s)
 start=$(date -d $start_time +%s)
 now=$(date +%s)

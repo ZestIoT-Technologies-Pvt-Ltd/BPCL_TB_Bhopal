@@ -1,25 +1,18 @@
 {
-	"personROI":{
-		"configPath":"/home/zestiot/Downloads/BPCL_integration/ROI/yolov4-tiny.cfg",
-		"weightPath":"/home/zestiot/Downloads/BPCL_integration/ROI/yolov4-tiny.weights",
-		"metaPath":"/home/zestiot/darknet/cfg/coco.data",
-		"confidence":"0.25"
-	},
-	"tracker":{
-		"weights":"/home/zestiot/Downloads/BPCL_integration/yolo_tracker/weights/yolov3-custom.tf",
-		"alert_flag":20,
-		"pixels":20
-	},
 	"camera1":"rtsp://192.168.1.21/ch01.264",
 	"camera2":"rtsp://192.168.1.51/av0_0",
+	"comment":"Palert_frame is the number of False positives considered in 5 seconds for Person in ROI similarly for Dalert_frame, Malert_frame for Motion and Direction",
 	"Dalert_frame":3,
 	"Palert_frame":3,
 	"Malert_frame":3,
+	"comment":"Person_ROI_unavailable and other are time period for Alert Alarm for Person in ROI.",
 	"Person_ROI_unavailable":30,
 	"Person_ROI_rectify":30,
 	"Person_not_attentive":30,
 	"Person_attentive_rectify":30,
+	"comment":"Time periodin hours when the water check is performed periodically",
 	"water_check_period":2,
+	"comment":"Time perios for event on video",
 	"vid_duration":20,
 	"event_file":"/home/smartcow/BPCL/BPCL_final/last_event.txt",
 	"error_file":"/home/smartcow/BPCL/BPCL_final/error_file.txt",
@@ -30,6 +23,6 @@
 		"metaPath":"/home/smartcow/BPCL/BPCL_final/tracker/obj.data",
 		"alert_frame":20
 	},
-	"End_time":"17:30:00",
-	"Start_time":"09:30:00"
+	"Plant_end_time":"17:30:00",
+	"Plant_start_time":"09:30:00"
 }

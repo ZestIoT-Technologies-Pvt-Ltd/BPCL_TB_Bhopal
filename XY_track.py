@@ -36,7 +36,7 @@ from datetime import datetime, timedelta
 import traceback
 import numpy as np
 font = cv2.FONT_HERSHEY_SIMPLEX
-
+cyl_detected=0
 def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,moving):
 	try:
 		obj=cyl
@@ -54,6 +54,7 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 		result=darknet.detect_image(network,class_names,darknet_image, thresh=0.25)
 		#print(result)
 		for i,j in enumerate(result):
+			cyl_detected=i
 			cord=j[2]
 			xm=int((cord[0]) * float(x_res/416)) # cent coordinates
 			ym=int((cord[1]) * float(y_res/416))
@@ -79,17 +80,19 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 		if count == 1:
 			start_time=datetime.now()
 			st_dict=len(track_dict)
-		if len(track_dict) > st_dict:
+	
+		elif len(track_dict) > st_dict:
 			moving = True
-			track_dict={}
-			cyl=0
-			count=0
+			cyl,count,track_dict = 0,0,{}
 
-		if datetime.now() > start_time+timedelta(seconds=2) and len(track_dict) == st_dict:
+		elif datetime.now() > start_time+timedelta(seconds=2) and len(track_dict) == st_dict:
 			moving = False
-			track_dict={}
-			cyl=0
-			count = 0
+			cyl,count,track_dict = 0,0,{}
+			
+		elif cyl_detected < st_dict:
+			moving =True
+			cyl,count,track_dict = 0,0,{}
+
 		print(moving)
 		cv2.putText(dst, "Moving : "+str(moving), (30,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
 		return(moving,dst,track_dict,st_dict,count,cyl)
