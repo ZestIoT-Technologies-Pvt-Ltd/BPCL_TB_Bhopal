@@ -34,7 +34,6 @@ import Roi
 import Motion
 import View
 import posenet
-import argparse
 import RTSP
 import tracker_model
 import XY_track
@@ -44,27 +43,17 @@ import error
 import Health_Api
 import screening2
 import screening1
-parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=int, default=101)
-parser.add_argument('--scale_factor', type=float, default=1.0)
-parser.add_argument('--notxt', action='store_true')
-parser.add_argument('--image_dir', type=str, default='./images')
-parser.add_argument('--output_dir', type=str, default='./output')
-args = parser.parse_args()
 
-#Heartbeat.health()
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-loc= "/home/zestiot/Downloads/still_1.avi"
+screening1.create()
+screening2.create()
+screening1.connect()
+screening2.connect()
 config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"
-out=cv2.VideoWriter( loc, fourcc, 25, (1280,720), True)
-#config="/home/nvidia/BPCL_integration/BPCL_config.json"
 with open(config) as json_data:
 	info=json.load(json_data)
-	cam1,cam2,qsize1,qsize2,cyl_weights,alert_flag,pixels,Dalert_time,Dalert_frame,Palert_time,Palert_frame = info["camera1"],info["camera2"],info["qsize1"],info["qsize2"], info["tracker"]["weights"],info["tracker"]["alert_flag"],info["tracker"]["pixels"],info["Palert_time"], info["Dalert_time"], info["Dalert_frame"], info["Palert_frame"]
+	cam1,cam2= info["camera1"],info["camera2"]
 # initializing tracker variables
 count,moving,track_dict,st_dict,cyl = 0, False, {},0,0
-#weights = "/home/siddharth/Downloads/BPCL_integration/DeepsortTracker/data/yolov4-tiny-416/"
-#mod_classes,tiny,size,num_classes,moving ="/home/zestiot/Downloads/BPCL_integration/yolo_tracker/data/labels/coco.names",True,416,1,False
 
 def Diagnostics():
 	try:
@@ -74,33 +63,33 @@ def Diagnostics():
 
 class camera():
 
-    def __init__(self, src=0):
-        # Create a VideoCapture object
-        self.capture = cv2.VideoCapture(src)
+	def __init__(self, src=0):
+		# Create a VideoCapture object
+		self.capture = cv2.VideoCapture(src)
 
-        # Take screenshot every x seconds
-        self.screenshot_interval = 1
+		# Take screenshot every x seconds
+		self.screenshot_interval = 1
 
-        # Default resolutions of the frame are obtained (system dependent)
-        self.frame_width = int(self.capture.get(3))
-        self.frame_height = int(self.capture.get(4))
+		# Default resolutions of the frame are obtained (system dependent)
+		self.frame_width = int(self.capture.get(3))
+		self.frame_height = int(self.capture.get(4))
 
-        # Start the thread to read frames from the video stream
-        self.thread = Thread(target=self.update, args=())
-        self.thread.daemon = True
-        self.thread.start()
+		# Start the thread to read frames from the video stream
+		self.thread = Thread(target=self.update, args=())
+		self.thread.daemon = True
+		self.thread.start()
 
-    def update(self):
-        # Read the next frame from the stream in a different thread
-        while True:
-            if self.capture.isOpened():
-                (self.status, self.frame) = self.capture.read()
+	def update(self):
+		# Read the next frame from the stream in a different thread
+		while True:
+			if self.capture.isOpened():
+				(self.status, self.frame) = self.capture.read()
 
-    def get_frame(self):
-        # Display frames in main program
-        if self.status:
-            self.frame = cv2.resize(self.frame, (1280,720))
-            return self.frame
+	def get_frame(self):
+		# Display frames in main program
+		if self.status:
+			self.frame = cv2.resize(self.frame, (1280,720))
+			return self.frame
 
 if __name__ == '__main__':
 	try:
@@ -110,26 +99,23 @@ if __name__ == '__main__':
 		output_stride = model_cfg['output_stride']
 		darknet_image_T,network_T,class_names_T=tracker_model.load_model()
 		print("Tracker model loaded")
-		cam = camera('rtsp://192.168.1.21/ch01.264')
+		cam1 = camera(cam1)
 		time.sleep(1)
-		cam1 = camera('rtsp://192.168.1.51/av0_0')
+		cam2 = camera(cam2)
 		time.sleep(1)
 		ht_time=datetime.now()
-		kk = 0
-		while True: #and (ch > 2):
-			#print(str(datetime.now()))
-			#img1=stream_1.read()
-			#moving,crop_image,track_dict,st_dict,count,cyl = XY_track.track(img1,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
-			img1 = cam.get_frame()
+		#kk = 0
+		while True:
+			img1 = cam1.get_frame()
 			img1 = cv2.resize(img1,(1280,720))
-			img2 = cam1.get_frame()
+			img2 = cam2.get_frame()
 			img2 = cv2.resize(img2,(1280,720))
 			#ret,img1 = cam.read()
 			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img2,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
 			
 			moving =True
 			if moving == True:
-				input_image, draw_image, output_scale = posenet.read_imgfile(img1, scale_factor=args.scale_factor, output_stride=output_stride)
+				input_image, draw_image, output_scale = posenet.read_imgfile(img1, scale_factor=1.0, output_stride=output_stride)
 				heatmaps_result, offsets_result, displacement_fwd_result, displacement_bwd_result = sess.run(model_outputs,feed_dict={'image:0': input_image})
 				pose_scores, keypoint_scores, keypoint_coords = posenet.decode_multiple_poses(
 					heatmaps_result.squeeze(axis=0),
@@ -147,32 +133,32 @@ if __name__ == '__main__':
 				number_motion=Motion.motion(motion_coords,motion_scores,number_view)
                 
 				if number_roi >= 1:
-					fff = Timer.timer("person",True,cam)
+					Timer.timer("person",True,cam1)
 				if number_roi == 0:
-					fff = Timer.timer("person",False,cam)
+					Timer.timer("person",False,cam1)
 				if number_roi >= 1 and number_view >= 1:
-					fff = Timer.timer("direction",True,cam)
+					Timer.timer("direction",True,cam1)
 				if number_roi >= 1 and number_view == 0:
-					fff = Timer.timer("direction",False,cam)
+					Timer.timer("direction",False,cam1)
 				if number_roi >= 1 and number_view >= 1 and number_motion == 1:
-					fff = Timer.timer("motion",True,cam)
+					Timer.timer("motion",True,cam1)
 				if number_roi >= 1 and number_view >=  1 and number_motion == 0:
-					fff = Timer.timer("motion", False,cam)
-				rrr = " ROI " + str(number_roi)
-				vvv = " View " + str(number_view)
-				mmm = " Motion " + str(number_motion)
+					Timer.timer("motion", False,cam1)
+				Roi_draw = " ROI " + str(number_roi)
+				View_draw = " View " + str(number_view)
+				Motion_draw = " Motion " + str(number_motion)
 				current_time = datetime.now()
 				current_time = str(current_time)[10:]
 				print(current_time)
-				img1 = posenet.draw_skel_and_kp(
+				'''img1 = posenet.draw_skel_and_kp(
 					img1, pose_scores, keypoint_scores, keypoint_coords,
 					min_pose_score=0.1, min_part_score=0.1)
 				pts = np.array([[362,618],[617,588],[710,637],[419,687]], np.int32)
 				pts = pts.reshape((-1,1,2))
 				cv2.polylines(img1,[pts],True,(0,0,255))
-				overlay_image = cv2.putText(img1, rrr , (20,70), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
-				overlay_image = cv2.putText(img1, vvv , (20,120), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
-				overlay_image = cv2.putText(img1, mmm , (20,170), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
+				overlay_image = cv2.putText(img1, Roi_draw , (20,70), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
+				overlay_image = cv2.putText(img1, View_draw , (20,120), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
+				overlay_image = cv2.putText(img1, Motion_draw , (20,170), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
 				path = "/home/zestiot/Downloads/BPCL_final/save/"
 				path = path + str(kk) + ".jpg"
 				#cv2.imwrite(path,overlay_image)
@@ -182,7 +168,7 @@ if __name__ == '__main__':
 				#check2.screening(img2) 
 				cv2.imshow("frame",overlay_image)
 				if cv2.waitKey(1) & 0xFF == ord('q'):
-					break
+					break'''
 			if ht_time < datetime.now():
 				health = Thread(target=Diagnostics,args=())
 				health.start()
@@ -192,4 +178,4 @@ if __name__ == '__main__':
 	except Exception as e:
 		print(str(e))
 		traceback.print_exc()
-		#error.raised("1",str(e))
+		error.raised("1",str(e))

@@ -1,3 +1,34 @@
+#   Copyright (C) 2020 by ZestIOT. All rights reserved. The information in this 
+#   document is the property of ZestIOT. Except as specifically authorized in 
+#   writing by ZestIOT, the receiver of this document shall keep the information
+#   contained herein confidential and shall protect the same in whole or in part from
+#   disclosure and dissemination to third parties. Disclosure and disseminations to 
+#   the receiver's employees shall only be made on a strict need to know basis.
+"""
+Input: image from camera, darknet image object, loaded network (darknet object), class_name 
+       (darknet object), trck_dict(dictionary with number of cylinders and their respective centroid 
+       coordinates),st_dict(number of cylinders in the first frame), count (number of frames),
+       cyl(cylinder number), moving(if cylinder is moving then True else False) 
+
+Output: trck_dict(dictionary with number of cylinders and their respective centroid coordinates),
+        st_dict(number of cylinders in the first frame), count (number of frames),
+        cyl(cylinder number), moving(if cylinder is moving then True else False) 
+
+User Requirement:
+1) Detecting if the cylinder are moving or not
+
+
+Requirements:
+1) This function takes the darknet image object, loaded network(darknet object), class name(darknet onject),
+   and image from the camera  which is first cropped in Region of inetrest(ROI) and then it is converted to 
+   the darknet image object which is passed to the loaded model with class names. The result is the detection 
+   of cylinder in each ROI, which basically provides the central coordinates of the bounding box detection of 
+   the respective object.
+2) Then we need to check if the cylinders are moving or not by the monement of coordinates of the detection over some frames.
+3) If there is no movement for certain frames then we know the cylinfers are not moving.
+"""
+
+
 import darknet
 import cv2
 import error
@@ -5,6 +36,7 @@ from datetime import datetime, timedelta
 import traceback
 import numpy as np
 font = cv2.FONT_HERSHEY_SIMPLEX
+cyl_detected=0
 def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,moving):
 	try:
 		obj=cyl
@@ -22,6 +54,7 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 		result=darknet.detect_image(network,class_names,darknet_image, thresh=0.25)
 		#print(result)
 		for i,j in enumerate(result):
+			cyl_detected=i
 			cord=j[2]
 			xm=int((cord[0]) * float(x_res/416)) # cent coordinates
 			ym=int((cord[1]) * float(y_res/416))
@@ -29,35 +62,37 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 				for key in track_dict:
 					if abs(xm - int(track_dict[key]['xco'])) < diff_pixel:
 						cyl_dict={}
-						flag=track_dict[key]["flag"]+1
-						cyl_dict[key]={'xco':xm,'yco':ym,'flag':flag}
+						cyl_dict[key]={'xco':xm,'yco':ym}
 						break
 					else:
 						obj= cyl+1
-						cyl_dict[obj]={'xco':xm,'yco':ym,'flag':0}
+						cyl_dict[obj]={'xco':xm,'yco':ym}
 
 				track_dict.update(cyl_dict)
 				cyl=obj
 				cyl_dict={}
 
 			if cyl == 0:
-				track_dict[cyl]={'xco':xm,'yco':ym,'flag':0}
+				track_dict[cyl]={'xco':xm,'yco':ym}
 				cyl=cyl+1
 		#print(track_dict,count,st_dict,moving,cyl)
 		count=count+1
 		if count == 1:
+			start_time=datetime.now()
 			st_dict=len(track_dict)
-		if len(track_dict) > st_dict:
+	
+		elif len(track_dict) > st_dict:
 			moving = True
-			track_dict={}
-			cyl=0
-			count=0
+			cyl,count,track_dict = 0,0,{}
 
-		if count > 40 and len(track_dict) == st_dict:
+		elif datetime.now() > start_time+timedelta(seconds=2) and len(track_dict) == st_dict:
 			moving = False
-			track_dict={}
-			cyl=0
-			count = 0
+			cyl,count,track_dict = 0,0,{}
+			
+		elif cyl_detected < st_dict:
+			moving =True
+			cyl,count,track_dict = 0,0,{}
+
 		print(moving)
 		cv2.putText(dst, "Moving : "+str(moving), (30,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
 		return(moving,dst,track_dict,st_dict,count,cyl)

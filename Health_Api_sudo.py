@@ -20,6 +20,7 @@ Requirements
 """
 error_file="/home/smartcow/BPCL/BPCL_final/error_code.txt"
 last_event="/home/smartcow/BPCL/BPCL_final/last_event.txt"
+er=0
 def health():
         try:
                 with open(last_event,'r+') as event:
@@ -59,14 +60,14 @@ def health():
         else:
                 gpu ="run the command with sudo to get GPU readings"
         #print("Percentage used and Frquency of different cores\nGPU: {}\nCPU 1: {}\nCPU 2: {}\nCPU 3: {}\nCPU 4: {}\nCPU 5: {}\nCPU 6: {}\n".format(gpu,cpu1,cpu2,cpu3,cpu4,cpu5,cpu6))
-        CPU=info[18].split("@")[-1]
-        AO=info[14].split("@")[-1]
-        GPU_t=info[15].split("@")[-1]
-        AUX=info[17].split("@")[-1]
+        CPU=info[25].split("@")[-1]
+        AO=info[21].split("@")[-1]
+        GPU_t=info[22].split("@")[-1]
+        AUX=info[24].split("@")[-1]
         #Tboard=info[21].split("@")[-1]
         #Tdiode=info[17].split("@")[-1]
-        PMIC=info[16].split("@")[-1]
-        thermal=info[19].split("@")[-1]
+        PMIC=info[23].split("@")[-1]
+        thermal=info[26].split("@")[-1]
 
         # Memory left and usage in percentage
         total_memory=Popen(['df','-BM'],stdout=PIPE)
@@ -120,3 +121,4 @@ def apicall():
             error.raised("8","API failed")
     except Exception as e:
         error.raised("8",str(e))
+
