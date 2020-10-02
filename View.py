@@ -25,6 +25,7 @@ def view_detection(view_coords,view_scores,roi):
     
     for person in range(0,roi):
         nose_score,left_eye_score, right_eye_score, nose_x, nose_y, left_eye_y, right_eye_y, left_ear_score, right_ear_score = view_scores[person][0],view_scores[person][1],view_scores[person][2], view_coords[person][0][0], view_coords[person][0][1], view_coords[person][1][1], view_coords[person][2][1], view_scores[person][3], view_scores[person][4]
+        left_shoulder_x, right_shoulder_x = view_coords[person][5][0], view_coords[person][6][0]
         if (left_eye_score>=0.1 and right_eye_score>=0.1) :
             if (nose_score > 0.35) and (nose_y < left_eye_y) and (nose_y > right_eye_y) and (left_eye_score>=0.65 and right_eye_score>=0.5) and (left_ear_score>0.1 or right_ear_score>0.1):
                 if nose_x+60 > left_shoulder_x and nose_x+60 > right_shoulder_x :
