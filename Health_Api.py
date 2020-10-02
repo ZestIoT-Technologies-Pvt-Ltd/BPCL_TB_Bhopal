@@ -18,6 +18,8 @@ Requirements
 4) captures last rebbot time and device uptime.
 5) Sends all the information to Pi using sockets.
 """
+global er
+er=0
 error_file="/home/smartcow/BPCL/BPCL_final/error_code.txt"
 last_event="/home/smartcow/BPCL/BPCL_final/last_event.txt"
 def health():
@@ -28,7 +30,7 @@ def health():
                         j1=j1.split(" :: ")
                         event_code=j1[0]
                         event_time=j1[-1].strip()
-                        #print(event_code,event_time)
+                    #print(event_code,event_time)
         except Exception as e:
                 print(str(e))
         try:
@@ -96,6 +98,7 @@ def health():
         return data
 
 def apicall():
+    global er
     try:
         sc = ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
     except Exception as e:
