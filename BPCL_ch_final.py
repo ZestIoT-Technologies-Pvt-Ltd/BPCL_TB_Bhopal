@@ -43,6 +43,9 @@ import Health_Api
 import screening2
 import screening1
 
+
+screening1.create()
+screening2.create()
 screening1.connect()
 screening2.connect()
 config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"

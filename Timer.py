@@ -156,13 +156,15 @@ def timer(algo,flag,cam):
 						#efile.write("EVENT21_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT21_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT21_ON")
+					false_positive_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!! Person not in ROI  ******* Time : " , current_time)
 					Ptimer = 2
 
-				elif Ptimer==1 and datetime.now() >false_positive_time+ timedelta(seconds=5):
+				elif Ptimer != 0 and datetime.now() >false_positive_time+ timedelta(seconds=5):
 					Pdetect=0
+					false_positive_time=datetime.now()
 
 		if algo == "direction":
 			Dflag = flag
@@ -206,12 +208,15 @@ def timer(algo,flag,cam):
 						#efile.write("EVENT22_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT22_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT22_ON")
+					false_positive_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!!   not looking in that direction ***** Time : ", current_time)
 					Dtimer = 2
-				elif Dtimer==1 and datetime.now() >false_positive_time + timedelta(seconds=5):
-					Ddetect=0	
+					
+				elif Dtimer != 1 and datetime.now() >false_positive_time + timedelta(seconds=5):
+					Ddetect=0
+					false_positive_time=datetime.now()
 
 		if algo == "motion":
 			Mflag = flag
@@ -254,13 +259,14 @@ def timer(algo,flag,cam):
 						#efile.write("EVENT23_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT23_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT23_ON")
-					timer6 = "ALERT!!! Motion is not detected"
+					false_positive_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!!   Motion is not detected *** Time :", current_time)
 					Mtimer = 2
-				elif Mtimer==1 and datetime.now() >false_positive_time + timedelta(seconds=5):
+				elif Mtimer != 1 and datetime.now() >false_positive_time + timedelta(seconds=5):
 					Mdetect=0
+					false_positive_time=datetime.now()
 
 	except Exception as e:
 		print (str(e),"error in timer")

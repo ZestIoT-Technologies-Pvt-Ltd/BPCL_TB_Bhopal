@@ -26,11 +26,18 @@ client_socket = This variable shall create a socket pair and connect IP address 
 encode_param = This variable shall be used to change the quality of the frame
 
 '''
+def create():
+	try:
+		client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	except Exception as e:
+		error.raised("8",str(e))
+		print("Not able to create client socket")
+		time.sleep(1)
+		create()
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 def connect():
 	try:
-		client_socket.connect(('192.168.1.132', 8097))
+		client_socket.connect(('192.168.1.201', 8097))
 		connection = client_socket.makefile('wb')
 		encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
 	except Exception as e:
