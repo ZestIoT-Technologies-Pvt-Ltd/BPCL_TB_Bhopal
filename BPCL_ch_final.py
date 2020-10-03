@@ -115,7 +115,7 @@ if __name__ == '__main__':
 			
 			moving =True
 			if moving == True:
-				input_image, draw_image, output_scale = posenet.read_imgfile(img1, scale_factor=1.0, output_stride=output_stride)
+				input_image, draw_image, output_scale = posenet.read_imgfile(img1, scale_factor=0.7125, output_stride=output_stride)
 				heatmaps_result, offsets_result, displacement_fwd_result, displacement_bwd_result = sess.run(model_outputs,feed_dict={'image:0': input_image})
 				pose_scores, keypoint_scores, keypoint_coords = posenet.decode_multiple_poses(
 					heatmaps_result.squeeze(axis=0),
