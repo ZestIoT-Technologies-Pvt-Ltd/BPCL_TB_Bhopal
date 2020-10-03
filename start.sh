@@ -1,4 +1,4 @@
-cd /home/siddharth/BPCL_Bhopal_ch_final/
+cd /home/smartcow/BPCL/BPCL_ch_final/
 
 end_time=$(jq '.Plant_end_time' BPCL_config.json | tr -d \")
 start_time=$(jq '.Plant_start_time' BPCL_config.json| tr -d \")
@@ -14,7 +14,7 @@ then
 	else
 		kill -9 $Process1
 		echo "Starting BPCL process"
-		python3 BPCL_vid.py
+		python3 BPCL_ch_final.py
 	fi
 else
 	echo "stop"
