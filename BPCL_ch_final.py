@@ -134,35 +134,46 @@ if __name__ == '__main__':
                 
 				if number_roi >= 1:
 					Timer.timer("person",True,cam1)
+					Roi_draw = " Person in ROI " + ": True":
 				if number_roi == 0:
 					Timer.timer("person",False,cam1)
+					Roi_draw = " Person in ROI " + ": False":
 				if number_roi >= 1 and number_view >= 1:
 					Timer.timer("direction",True,cam1)
+					View_draw = " Person View " + ": True"
 				if number_roi >= 1 and number_view == 0:
 					Timer.timer("direction",False,cam1)
+					View_draw = " Person View " + ": False"
 				if number_roi >= 1 and number_view >= 1 and number_motion == 1:
 					Timer.timer("motion",True,cam1)
+					Motion_draw = " Person Motion " + ": True"
 				if number_roi >= 1 and number_view >=  1 and number_motion == 0:
 					Timer.timer("motion", False,cam1)
-				Roi_draw = " ROI " + str(number_roi)
-				View_draw = " View " + str(number_view)
-				Motion_draw = " Motion " + str(number_motion)
+					Motion_draw = " Person Motion " + ": False"
+				
+				'''Roi_draw = " Person in ROI " + str(number_roi)
+				View_draw = " Person View " + str(number_view)
+				Motion_draw = " Person Motion " + str(number_motion)
 				current_time = datetime.now()
 				current_time = str(current_time)[10:]
 				print(current_time)
-				'''img1 = posenet.draw_skel_and_kp(
+				img1 = posenet.draw_skel_and_kp(
 					img1, pose_scores, keypoint_scores, keypoint_coords,
 					min_pose_score=0.1, min_part_score=0.1)
-				pts = np.array([[362,618],[617,588],[710,637],[419,687]], np.int32)
+				
+				
+				pts = np.array([[103,418],[412,240],[951,373],[807,686]], np.int32)
 				pts = pts.reshape((-1,1,2))
-				cv2.polylines(img1,[pts],True,(0,0,255))
+				cv2.polylines(img1,[pts],True,(0,255,255))
 				overlay_image = cv2.putText(img1, Roi_draw , (20,70), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
 				overlay_image = cv2.putText(img1, View_draw , (20,120), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
 				overlay_image = cv2.putText(img1, Motion_draw , (20,170), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
-				path = "/home/zestiot/Downloads/BPCL_final/save/"
+				
+				path = "/media/smartcow/LFS/output/"
 				path = path + str(kk) + ".jpg"
-				#cv2.imwrite(path,overlay_image)
-				#kk = kk + 1
+				cv2.imwrite(path,overlay_image)
+				kk = kk + 1
+				
 				overlay_image = cv2.resize(overlay_image,(640,480))
 				#check1.screening(overlay_image)
 				#check2.screening(img2) 
