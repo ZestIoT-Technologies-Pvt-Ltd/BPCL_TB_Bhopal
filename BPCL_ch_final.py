@@ -7,6 +7,7 @@
 #   disclosure and dissemination to third parties. Disclosure and
 #   disseminations to the receiver's employees shall only be made on
 #   a strict need to know basis.
+
 Input: The model takes input from two cameras, one camera is used to find whether the cylinder bed is moving or not and the other one is used to find person attentiveness
 Output: The model sends the alarm values to the timer function based on person attentiveness
 Requirements:
@@ -42,7 +43,6 @@ import error
 import Health_Api
 import screening2
 import screening1
-
 
 screening1.create()
 screening2.create()
