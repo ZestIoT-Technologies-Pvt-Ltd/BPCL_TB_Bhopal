@@ -52,7 +52,7 @@ def motion(motion_coords,motion_scores,view):
         present_coords = []
         for body_point in [0,5,6,9,10]:
             landmark_coords=[0,0]
-            if round(motion_scores[person][body_point],1) >= 0.3:
+            if round(motion_scores[person][body_point],1) >= 0.2:
                 landmark_coords[0]=round(motion_coords[person][body_point][0],1)
                 landmark_coords[1]=round(motion_coords[person][body_point][1],1)
             else:
@@ -87,12 +87,12 @@ def motion(motion_coords,motion_scores,view):
             if count_check[person] == 1:
                 for j in range(0,5): # checking five body points
                     number_frames_difference=0
-                    if j == 1 or j == 2: # for shoulder landmarks we set threshold to 9
-                        pix_frames_difference = 9
-                    elif j == 3 or j == 4: # for wrist landmarks we set threshold to 11
-                        pix_frames_difference = 11
-                    else: # for nose landmark we set threshold to 7
+                    if j == 1 or j == 2: # for shoulder landmarks we set threshold to 6
+                        pix_frames_difference = 6
+                    elif j == 3 or j == 4: # for wrist landmarks we set threshold to 7
                         pix_frames_difference = 7
+                    else: # for nose landmark we set threshold to 5
+                        pix_frames_difference = 5
     
                     for k in range(0,8): # checking 8 frames values in frames_difference
                         if frames_difference[person][k][j] >= pix_frames_difference: # checking whether frames_difference values of landmarks are greater than or equal to respective threshold values
