@@ -54,7 +54,7 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 		result=darknet.detect_image(network,class_names,darknet_image, thresh=0.25)
 		#print(result)
 		for i,j in enumerate(result):
-			cyl_detected=i
+			cyl_detected=i+1
 			cord=j[2]
 			xm=int((cord[0]) * float(x_res/416)) # cent coordinates
 			ym=int((cord[1]) * float(y_res/416))

@@ -52,6 +52,7 @@ from pynng import Timeout
 import cv2
 from threading import Thread
 import error
+import shutil
 import os
 config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"
 with open(config) as json_data:
@@ -60,7 +61,7 @@ with open(config) as json_data:
 	Palert_time,Dalert_time=info["Person_ROI_unavailable"], info["Person_not_attentive"]
 	Roi_rectify,attentive_rectify=info["Person_ROI_rectify"],info["Person_attentive_rectify"]
 	Malert_time=Dalert_time
-	vid_duration,event_file,gpu_path= info["vid_duration"], info["event_file"],info["gpu_path"]
+	vid_duration,event_file,gpu_path,temp_folder = info["vid_duration"], info["event_file"],info["gpu_path"],info["temp_folder"]
 
 Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,false_positive_time = 0,0,0,0,0,0,0,0
 Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback = 0,0,0,0,0,0,0
@@ -69,8 +70,8 @@ vid_path="/home/"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 def start_video(event,cam):
-	global Dtimer,Ptimer,Mtimer,vid_path
-	event_out=cv2.VideoWriter(vid_path,fourcc, 10, (1280,720), True)
+	global Dtimer,Ptimer,Mtimer,temp_folder
+	event_out=cv2.VideoWriter(temp_folder,fourcc, 10, (1280,720), True)
 	vid_end_time=datetime.now()+timedelta(seconds=vid_duration)
 	while (Dtimer > 0 or Ptimer > 0 or Mtimer > 0):
 		if datetime.now()>vid_end_time:
@@ -82,7 +83,7 @@ def start_video(event,cam):
 		event_out.write(img)
 
 def event_call(event):
-	global vid_path
+	global vid_path,temp_folder
 	try:
 		sc=ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
 	except Exception as e:
@@ -94,6 +95,8 @@ def event_call(event):
 
 	try:
 		logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+		shutil.move(temp_folder,vid_path)
+		print("file moved from {} to {}".format(temp_folder,vid_path))
 		#print("video Path {}".format(vid_path))
 		if event[-3:] == 'OFF':
 			data={'event_time':logdate}
@@ -143,7 +146,7 @@ def timer(algo,flag,cam):
 					Pflag = False
 					Ptimer=1
 					Pback=0
-					video_trigger(cam)
+					video_trigger(cam,"EVENT21_ON")
 					Pdetect=0
 					Ptrigger=datetime.now()
 					false_positive_time=datetime.now()
@@ -195,7 +198,7 @@ def timer(algo,flag,cam):
 					flag = False
 					Dtimer=1
 					Dback=0
-					video_trigger(cam)
+					video_trigger(cam,"EVENT22_ON")
 					Ddetect=0
 					Dtrigger=datetime.now()
 					false_positive_time=datetime.now()
@@ -247,7 +250,7 @@ def timer(algo,flag,cam):
 					flag = False
 					Mtimer=1
 					Mback=0
-					video_trigger(cam)
+					video_trigger(cam,"EVENT23_ON")
 					Mdetect=0
 					Mtrigger=datetime.now()
 					false_positive_time=datetime.now()
@@ -274,24 +277,19 @@ def timer(algo,flag,cam):
 		print (str(e),"error in timer")
 		error.raised("9",str(e))
 
-def video_trigger(cam):
-	global vid_path
+def video_trigger(cam,event):
+	global vid_path,temp_folder
 	try:
 		if (Dtimer > 0 or Mtimer > 0 or Ptimer > 0):
 			vid_dir=(datetime.now()).strftime("%Y_%m_%d")
 			loc=gpu_path+vid_dir+"/"
-			vid_name="BHOPAL_BPCL_NX1_"+(datetime.now()).strftime("%Y-%m-%dT%H-%M-%S")+".avi"
+			vid_name="BHOPAL_BPCL_NX1_"+event+"_"+(datetime.now()).strftime("%Y-%m-%dT%H-%M-%S")+".avi"
 			vid_path = loc+vid_name
+			temp_folder=temp_folder+vid_name
 			#print("Path to the video {}".format(vid_path))
 			if not os.path.isdir(loc):
 				#print("make directory")
 				os.mkdir(loc)
-			if Ptimer == 1:
-				event = "EVENT21_OFF"
-			elif Dtimer == 1:
-				event = "EVENT22_OFF"
-			elif Mtimer == 1:
-				event = "EVENT23_OFF"
 			video=Thread(target=start_video,args=(event,cam))
 			video.start()
 	except Exception as e:
