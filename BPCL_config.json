@@ -1,6 +1,6 @@
 {
-	"camera1":"rtsp://192.168.1.21/ch01.264",
-	"camera2":"rtsp://192.168.1.51/av0_0",
+	"camera2":"rtsp://192.168.1.21/ch01.264",
+	"camera1":"rtsp://192.168.1.51/av0_0",
 	"comment":"Palert_frame is the number of False positives considered in 5 seconds for Person in ROI similarly for Dalert_frame, Malert_frame for Motion and Direction",
 	"Dalert_frame":3,
 	"Palert_frame":3,
@@ -16,7 +16,8 @@
 	"vid_duration":20,
 	"event_file":"/home/smartcow/BPCL/BPCL_final/last_event.txt",
 	"error_file":"/home/smartcow/BPCL/BPCL_final/error_file.txt",
-	"gpu_path":"/media/smartcow/LFS/",
+	"gpu_path":"/media/smartcow/LFS/video_storage/",
+	"temp_folder":"/media/smartcow/LFS/temp_video_storage/",
 	"xy_tracker":{
 		"configPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny.cfg",
 		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny_best.weights",
