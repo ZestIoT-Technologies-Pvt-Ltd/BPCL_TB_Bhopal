@@ -66,12 +66,13 @@ with open(config) as json_data:
 Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,false_positive_time = 0,0,0,0,0,0,0,0
 Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback = 0,0,0,0,0,0,0
 Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback = 0,0,0,0,0,0,0
-vid_path="/home/"
+vid_path="/media/smartcow/LFS/"
+temp_file="/media/smartcow/LFS/"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 def start_video(event,cam):
-	global Dtimer,Ptimer,Mtimer,temp_folder
-	event_out=cv2.VideoWriter(temp_folder,fourcc, 10, (1280,720), True)
+	global Dtimer,Ptimer,Mtimer,temp_file
+	event_out=cv2.VideoWriter(temp_file,fourcc, 3, (1280,720), True)
 	vid_end_time=datetime.now()+timedelta(seconds=vid_duration)
 	while (Dtimer > 0 or Ptimer > 0 or Mtimer > 0):
 		if datetime.now()>vid_end_time:
@@ -83,7 +84,7 @@ def start_video(event,cam):
 		event_out.write(img)
 
 def event_call(event):
-	global vid_path,temp_folder
+	global vid_path,temp_file
 	try:
 		sc=ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
 	except Exception as e:
@@ -95,12 +96,12 @@ def event_call(event):
 
 	try:
 		logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-		shutil.move(temp_folder,vid_path)
-		print("file moved from {} to {}".format(temp_folder,vid_path))
 		#print("video Path {}".format(vid_path))
 		if event[-3:] == 'OFF':
 			data={'event_time':logdate}
 		else:
+			shutil.move(temp_file,vid_path)
+			print("file moved from {} to {}".format(temp_file,vid_path))
 			data={'event_time':logdate,'path':vid_path}
 		sc.send(time_stamp=logdate, message_type=event, data=data)
 		msg = sc.receive()
@@ -115,19 +116,19 @@ def event_call(event):
 
 def timer(algo,flag,cam):
 	try:
-		global false_positive_time,Pback,Mback,Dback,vid_path,Ptimer,Pdetect,Palert_frame,Palert_time,Pcheck,Pst_time,Ptrigger, Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Dalert_frame,Dalert_time,Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Malert_frame,Malert_time
+		global Prectify,Drectify,Mrectify,false_positive_time,Pback,Mback,Dback,vid_path,Ptimer,Pdetect,Palert_frame,Palert_time,Pcheck,Pst_time,Ptrigger, Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Dalert_frame,Dalert_time,Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Malert_frame,Malert_time
 		if algo == "person" :
 			Pflag = flag
 			if Pflag == True:
 				print("person pflag",Pflag,Ptimer)
 				Pcheck = 0
 				Pdetect = Pdetect +1
-				if Ptimer != 0 and Pdetect > Palert_frame:
+				if Ptimer != 0 and  Pdetect > Palert_frame:
 					if Ptimer ==1:
-						Ptimer=0					
-					if Ptimer == 2:
+						Ptimer=0	
+					if Ptimer == 2 and Pback ==0:
 						Prectify =datetime.now()
-						Ptimer=0
+						#Ptimer=0
 						Pback =1
 					if Pback == 1 and datetime.now() > Prectify + timedelta(seconds=Roi_rectify):
 						with open(event_file,'w') as efile:
@@ -136,7 +137,7 @@ def timer(algo,flag,cam):
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
 						print("*********  Rectification!!! Person in ROI  ******* Time : " , current_time)
-						Ptimer,Pback=0,0
+						Ptimer=0
 			else:
 				print("ptimer",Ptimer,Pcheck,Pdetect, Palert_frame)
 				if Pcheck == 0 and Ptimer == 0:
@@ -178,10 +179,10 @@ def timer(algo,flag,cam):
 				if Dtimer != 0 and Ddetect >= Dalert_frame:
 					if Dtimer ==1:
 						Dtimer=0
-					elif Dtimer == 2:
+					elif Dtimer == 2 and Dback==0:
 						Dback=1
 						Drectify=datetime.now()
-						Dtimer=0
+						#Dtimer=0
 					elif Dback ==1 and datetime.now() > Drectify +timedelta(seconds=attentive_rectify):
 						with open(event_file,'w') as efile:
 							efile.write("EVENT22_OFF :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))		
@@ -189,7 +190,7 @@ def timer(algo,flag,cam):
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
 						print("*********  Rectification!!! Person is attentive  ******* Time : " , current_time)
-						Dtimer,Dback = 0,0
+						Dtimer = 0
 			else:
 				if Dcheck == 0 and Dtimer == 0:
 					Dst_time =datetime.now()
@@ -230,10 +231,10 @@ def timer(algo,flag,cam):
 				if Mtimer != 0 and Mdetect >= Malert_frame:
 					if Mtimer == 1:
 						Mtimer=0
-					elif Mtimer == 2 :
+					elif Mtimer == 2 and Mback==0:
 						Mback =1
 						Mrectify=datetime.now()
-						Mtimer=0
+						#Mtimer=0
 					elif Mback ==1 and datetime.now() > Mrectify +timedelta(seconds=attentive_rectify):
 						with open(event_file,'w') as efile:
 							efile.write("EVENT23_OFF :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))			
@@ -278,14 +279,14 @@ def timer(algo,flag,cam):
 		error.raised("9",str(e))
 
 def video_trigger(cam,event):
-	global vid_path,temp_folder
+	global vid_path,temp_folder,temp_file
 	try:
 		if (Dtimer > 0 or Mtimer > 0 or Ptimer > 0):
 			vid_dir=(datetime.now()).strftime("%Y_%m_%d")
 			loc=gpu_path+vid_dir+"/"
 			vid_name="BHOPAL_BPCL_NX1_"+event+"_"+(datetime.now()).strftime("%Y-%m-%dT%H-%M-%S")+".avi"
 			vid_path = loc+vid_name
-			temp_folder=temp_folder+vid_name
+			temp_file=temp_folder+vid_name
 			#print("Path to the video {}".format(vid_path))
 			if not os.path.isdir(loc):
 				#print("make directory")
