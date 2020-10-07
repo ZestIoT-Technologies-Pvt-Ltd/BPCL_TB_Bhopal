@@ -50,7 +50,8 @@ def motion(motion_coords,motion_scores,view):
     number_motion=0
     for person in range(0,view):
         present_coords = []
-        for body_point in [0,5,6,9,10]:
+        #for body_point in [0,5,6,9,10]:
+        for body_point in [0,3,4,9,10]:
             landmark_coords=[0,0]
             if round(motion_scores[person][body_point],1) >= 0.2:
                 landmark_coords[0]=round(motion_coords[person][body_point][0],1)
@@ -88,16 +89,16 @@ def motion(motion_coords,motion_scores,view):
                 for j in range(0,5): # checking five body points
                     number_frames_difference=0
                     if j == 1 or j == 2: # for shoulder landmarks we set threshold to 6
-                        pix_frames_difference = 6
+                        pix_frames_difference = 12
                     elif j == 3 or j == 4: # for wrist landmarks we set threshold to 7
-                        pix_frames_difference = 7
+                        pix_frames_difference = 18
                     else: # for nose landmark we set threshold to 5
-                        pix_frames_difference = 5
+                        pix_frames_difference = 9
     
                     for k in range(0,8): # checking 8 frames values in frames_difference
                         if frames_difference[person][k][j] >= pix_frames_difference: # checking whether frames_difference values of landmarks are greater than or equal to respective threshold values
                             number_frames_difference = number_frames_difference+1
-                        if number_frames_difference >4 :         # if the difference of any landmarks exceeds its threshold 4 times in its previous 8 frames, we can say person is in motion
+                        if number_frames_difference > 2 :         # if the difference of any landmarks exceeds its threshold 4 times in its previous 8 frames, we can say person is in motion
                             #Mot_person[person]=1
                             number_motion=number_motion+1
                             break;
