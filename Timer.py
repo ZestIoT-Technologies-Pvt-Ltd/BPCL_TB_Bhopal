@@ -125,7 +125,9 @@ def timer(algo,flag,cam):
 				Pdetect = Pdetect +1
 				if Ptimer != 0 and  Pdetect > Palert_frame:
 					if Ptimer ==1:
-						Ptimer=0	
+						Ptimer=0
+						Mtimer=0
+						Dtimer=0
 					if Ptimer == 2 and Pback ==0:
 						Prectify =datetime.now()
 						#Ptimer=0
@@ -179,6 +181,7 @@ def timer(algo,flag,cam):
 				if Dtimer != 0 and Ddetect >= Dalert_frame:
 					if Dtimer ==1:
 						Dtimer=0
+						Mtimer=0
 					elif Dtimer == 2 and Dback==0:
 						Dback=1
 						Drectify=datetime.now()
@@ -296,3 +299,7 @@ def video_trigger(cam,event):
 	except Exception as e:
 		print (str(e),"error in timer")
 		error.raised("9",str(e))
+
+def reset():
+	global Ptimer,Mtimer,Dtimer
+	Ptimer,Dtimer,Mtimer=0,0,0

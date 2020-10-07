@@ -113,7 +113,6 @@ if __name__ == '__main__':
 			#ret,img1 = cam.read()
 			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img2,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
 			
-			moving =True
 			if moving == True:
 				input_image, draw_image, output_scale = posenet.read_imgfile(img1, scale_factor=1.0, output_stride=output_stride)
 				heatmaps_result, offsets_result, displacement_fwd_result, displacement_bwd_result = sess.run(model_outputs,feed_dict={'image:0': input_image})
@@ -169,6 +168,8 @@ if __name__ == '__main__':
 				cv2.imshow("frame",overlay_image)
 				if cv2.waitKey(1) & 0xFF == ord('q'):
 					break'''
+			elif moving == False:
+				Timer.reset()
 			if ht_time < datetime.now():
 				health = Thread(target=Diagnostics,args=())
 				health.start()
