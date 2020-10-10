@@ -7,6 +7,7 @@ def raised(er,error_string):
 		with open(config) as json_data:
 			info = json.load(json_data)
 			error_time=str(datetime.now())
+			error_string=error_string.replace("'"," ")
 			with open(error_state,'w') as f:
 				f.write("{} :: {} :: {} ****".format(info["error"][er],error_time,error_string))
 				f.close()

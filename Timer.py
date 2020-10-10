@@ -63,9 +63,9 @@ with open(config) as json_data:
 	Malert_time=Dalert_time
 	vid_duration,event_file,gpu_path,temp_folder = info["vid_duration"], info["event_file"],info["gpu_path"],info["temp_folder"]
 
-Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,false_positive_time = 0,0,0,0,0,0,0,0
-Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback = 0,0,0,0,0,0,0
-Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback = 0,0,0,0,0,0,0
+Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,Pfp_time = 0,0,0,0,0,0,0,0
+Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback,Dfp_time = 0,0,0,0,0,0,0,0
+Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback,Mfp_time = 0,0,0,0,0,0,0,0
 vid_path="/media/smartcow/LFS/"
 temp_file="/media/smartcow/LFS/"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -116,7 +116,7 @@ def event_call(event):
 
 def timer(algo,flag,cam):
 	try:
-		global Prectify,Drectify,Mrectify,false_positive_time,Pback,Mback,Dback,vid_path,Ptimer,Pdetect,Palert_frame,Palert_time,Pcheck,Pst_time,Ptrigger, Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Dalert_frame,Dalert_time,Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Malert_frame,Malert_time
+		global Prectify,Drectify,Mrectify,Pback,Mback,Dback,vid_path,Ptimer,Pdetect,Palert_frame,Palert_time,Pcheck,Pst_time,Ptrigger, Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Dalert_frame,Dalert_time,Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Malert_frame,Malert_time
 		if algo == "person" :
 			Pflag = flag
 			if Pflag == True:
@@ -128,6 +128,7 @@ def timer(algo,flag,cam):
 						Ptimer=0
 						Mtimer=0
 						Dtimer=0
+						print("Ptimer, Mtimer, Dtimer were reset")
 					if Ptimer == 2 and Pback ==0:
 						Prectify =datetime.now()
 						#Ptimer=0
@@ -147,12 +148,13 @@ def timer(algo,flag,cam):
 					Pcheck = 1
 				if datetime.now() > Pst_time + timedelta(seconds=2) and Ptimer == 0 and Pcheck == 1:
 					Pflag = False
+					Mtimer,Dtimer=0,0
 					Ptimer=1
 					Pback=0
 					video_trigger(cam,"EVENT21_ON")
 					Pdetect=0
 					Ptrigger=datetime.now()
-					false_positive_time=datetime.now()
+					Pfp_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********** Person Timer Started ******* Time : ", current_time)
@@ -162,15 +164,15 @@ def timer(algo,flag,cam):
 						#efile.write("EVENT21_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT21_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT21_ON")
-					false_positive_time=datetime.now()
+					Pfp_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!! Person not in ROI  ******* Time : " , current_time)
 					Ptimer = 2
 
-				elif Ptimer != 0 and datetime.now() >false_positive_time+ timedelta(seconds=5):
+				elif Ptimer != 0 and datetime.now() >Pfp_time + timedelta(seconds=5):
 					Pdetect=0
-					false_positive_time=datetime.now()
+					Pfp_time=datetime.now()
 
 		if algo == "direction":
 			Dflag = flag
@@ -182,6 +184,7 @@ def timer(algo,flag,cam):
 					if Dtimer ==1:
 						Dtimer=0
 						Mtimer=0
+						print("resetting Dtimer and Mtimer")
 					elif Dtimer == 2 and Dback==0:
 						Dback=1
 						Drectify=datetime.now()
@@ -200,12 +203,13 @@ def timer(algo,flag,cam):
 					Dcheck = 1
 				if datetime.now() > Dst_time + timedelta(seconds=2) and Dtimer == 0 and Dcheck == 1:
 					flag = False
+					Mtimer=0
 					Dtimer=1
 					Dback=0
 					video_trigger(cam,"EVENT22_ON")
 					Ddetect=0
 					Dtrigger=datetime.now()
-					false_positive_time=datetime.now()
+					Dfp_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********** Direction Timer Started ***** Time : ", current_time)
@@ -215,15 +219,15 @@ def timer(algo,flag,cam):
 						#efile.write("EVENT22_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT22_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT22_ON")
-					false_positive_time=datetime.now()
+					Dfp_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!!   not looking in that direction ***** Time : ", current_time)
 					Dtimer = 2
 
-				elif Dtimer != 0 and datetime.now() >false_positive_time + timedelta(seconds=5):
+				elif Dtimer != 0 and datetime.now() > Dfp_time+ timedelta(seconds=5):
 					Ddetect=0
-					false_positive_time=datetime.now()
+					Dfp_time = datetime.now()
 
 		if algo == "motion":
 			Mflag = flag
@@ -257,7 +261,7 @@ def timer(algo,flag,cam):
 					video_trigger(cam,"EVENT23_ON")
 					Mdetect=0
 					Mtrigger=datetime.now()
-					false_positive_time=datetime.now()
+					Mfp_time=datetime.now()
 					timer5 = "Motion Timer Started"
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
@@ -268,14 +272,14 @@ def timer(algo,flag,cam):
 						#efile.write("EVENT23_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT23_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 					event_call("EVENT23_ON")
-					false_positive_time=datetime.now()
+					Mfp_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
 					print("*********  ALERT!!!   Motion is not detected *** Time :", current_time)
 					Mtimer = 2
-				elif Mtimer != 0 and datetime.now() >false_positive_time + timedelta(seconds=5):
+				elif Mtimer != 0 and datetime.now() > Mfp_time+ timedelta(seconds=5):
 					Mdetect=0
-					false_positive_time=datetime.now()
+					Mfp_time = datetime.now()
 
 	except Exception as e:
 		print (str(e),"error in timer")
