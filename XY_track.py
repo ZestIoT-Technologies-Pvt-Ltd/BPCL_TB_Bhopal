@@ -88,7 +88,7 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 				moving = True
 				cyl,count,track_dict = 0,0,{}
 
-		elif datetime.now() > start_time+timedelta(seconds=2) and len(track_dict) == st_dict:
+		elif datetime.now() > start_time+timedelta(seconds=5) and len(track_dict) == st_dict:
 			moving = False
 			cyl,count,track_dict = 0,0,{}
 			

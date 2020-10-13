@@ -64,58 +64,55 @@ with open(config) as json_data:
 	Malert_time=Dalert_time
 	vid_duration,event_file,gpu_path,temp_folder = info["vid_duration"], info["event_file"],info["gpu_path"],info["temp_folder"]
 
-Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,Pfp_time,Pvideo = 0,0,0,0,0,0,0,0,0
-Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback,Dfp_time,Dvideo = 0,0,0,0,0,0,0,0,0
-Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback,Mfp_time,Mvideo = 0,0,0,0,0,0,0,0,0
+Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,Pfp_time,Pvideo,Ppath = 0,0,0,0,0,0,0,0,0,0
+Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback,Dfp_time,Dvideo,Dpath = 0,0,0,0,0,0,0,0,0,0
+Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback,Mfp_time,Mvideo,Mpath = 0,0,0,0,0,0,0,0,0,0
 vid_path="/media/smartcow/LFS/"
+video_flag =0
 temp_file="/media/smartcow/LFS/"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
-def start_video(event,cam,temp_file):
-	global Dtimer,Ptimer,Mtimer
+def start_video(cam,event):
+	global Dtimer,Ptimer,Mtimer,video_flag,Pvideo,Mvideo,Dvideo,Ppath,Dpath,Mpath
+	img = cam.get_frame()
+	img = cv2.resize(img,(1280,720))
+	encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
+	result, encimg = cv2.imencode('.jpg',img, encode_param) #Encoding frame
+	img = cv2.imdecode(encimg, 1)
+	vid_dir=(datetime.now()).strftime("%Y_%m_%d")
+	loc=gpu_path+vid_dir+"/"
+	vid_name="BHOPAL_BPCL_NX1_"+event+"_"+(datetime.now()).strftime("%Y-%m-%dT%H-%M-%S")+".avi"
 	if event == "EVENT21_ON":
-		Pevent_out=cv2.VideoWriter(temp_file,fourcc, 3, (1280,720), True)
+		Ppath = loc+vid_name
+		Pvideo = temp_folder+vid_name
+		Pevent_out=cv2.VideoWriter(Pvideo,fourcc, 3, (1280,720), True)
 		Pvend_time=datetime.now()+timedelta(seconds=vid_duration)
-		while (Ptimer > 0):
-			if datetime.now()>Pvend_time:
-				break
-			Pimg=cam.get_frame()
-			#ret,Pimg =cam.read()
-			Pimg = cv2.resize(Pimg,(1280,720))
-			encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
-			result, Pencimg = cv2.imencode('.jpg',Pimg, encode_param) #Encoding frame
-			Pimg = cv2.imdecode(Pencimg, 1)
-			Pevent_out.write(Pimg)
-	if event == "EVENT22_ON":
+	elif event == "EVENT22_ON":
+		Dpath = loc+vid_name
+		Dvideo = temp_folder+vid_name
 		Devent_out=cv2.VideoWriter(temp_file,fourcc, 3, (1280,720), True)
 		Dvend_time=datetime.now()+timedelta(seconds=vid_duration)
-		while (Dtimer > 0):
-			if datetime.now()>Dvend_time:
-				break
-			Dimg=cam.get_frame()
-			#ret,Dimg =cam.read()
-			Dimg = cv2.resize(Dimg,(1280,720))
-			encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
-			result, Dencimg = cv2.imencode('.jpg',Dimg, encode_param) #Encoding frame
-			Dimg = cv2.imdecode(Dencimg, 1)
-			Devent_out.write(Dimg)
-	if event == "EVENT23_ON":
+	elif event == "EVENT23_ON":
+		Mpath = loc+vid_name
+		Mvideo = temp_folder+vid_name
 		Mevent_out=cv2.VideoWriter(temp_file,fourcc, 3, (1280,720), True)
 		Mvend_time=datetime.now()+timedelta(seconds=vid_duration)
-		while (Mtimer > 0):
-			if datetime.now()>Mvend_time:
-				break
-			Mimg=cam.get_frame()
-			#ret,Mimg =cam.read()
-			Mimg = cv2.resize(Mimg,(1280,720))
-			encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
-			result, Mencimg = cv2.imencode('.jpg',Mimg, encode_param) #Encoding frame
-			Mimg = cv2.imdecode(Mencimg, 1)
-			Mevent_out.write(Mimg)
+	while (Ptimer > 0):
+		if datetime.now()>Pvend_time:
+			break
+		Pevent_out.write(img)
+	while (Dtimer > 0):
+		if datetime.now()>Dvend_time:
+			break
+		Devent_out.write(img)
+	while (Mtimer > 0):
+		if datetime.now()>Mvend_time:
+			break
+		Mevent_out.write(img)
+#TODO - logic to stop/kill  the thread 
 
-
-def event_call(event,path):
-	global vid_path,er
+def event_call(event,temp,path):
+	global er
 	try:
 		sc=ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
 	except Exception as e:
@@ -132,8 +129,8 @@ def event_call(event,path):
 		if path  == None:
 			data={'event_time':logdate}
 		else:
-			shutil.move(path,vid_path)
-			print("file moved from {} to {}".format(path,vid_path))
+			shutil.move(temp,path)
+			print("file moved from {} to {}".format(temp,path))
 			data={'event_time':logdate,'path':vid_path}
 		print(data)
 		sc.send(time_stamp=logdate, message_type=event, data=data)
@@ -151,7 +148,7 @@ def event_call(event,path):
 
 def timer(algo,flag,cam):
 	try:
-		global Pvideo,Mvideo,Dvideo,Pfp_time,Mfp_time,Dfp_time,Prectify,Drectify,Mrectify,Pback,Mback,Dback,vid_path,Ptimer,Pdetect,Palert_frame,Palert_time,Pcheck,Pst_time,Ptrigger, Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Dalert_frame,Dalert_time,Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Malert_frame,Malert_time
+		global Pvideo,Mvideo,Dvideo,Ppath,Dpath,Mpath,Pfp_time,Mfp_time,Dfp_time,Prectify,Drectify,Mrectify,Pback,Mback,Dback,vid_path,Ptimer,Pdetect,Palert_frame,Palert_time,Pcheck,Pst_time,Ptrigger, Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Dalert_frame,Dalert_time,Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Malert_frame,Malert_time
 		if algo == "person" :
 			Pflag = flag
 			if Pflag == True:
@@ -161,10 +158,10 @@ def timer(algo,flag,cam):
 				if Ptimer != 0 and  Pdetect > Palert_frame:
 					if Ptimer ==1:
 						Ptimer=0
-						if Mtimer == 1:
-							Mtimer = 0
-						if Dtimer == 1:
-							Dtimer = 0
+						if Mtimer ==1:
+							Mtimer=0
+						if Dtimer==1:
+							Dtimer=0
 					if Ptimer == 2 and Pback ==0:
 						Prectify =datetime.now()
 						#Ptimer=0
@@ -173,7 +170,7 @@ def timer(algo,flag,cam):
 					if Pback == 1 and datetime.now() > Prectify + timedelta(seconds=Roi_rectify):
 						with open(event_file,'w') as efile:
 							efile.write("EVENT21_OFF :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
-						event_call("EVENT21_OFF",None)
+						event_call("EVENT21_OFF",None,None)
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
 						print("*********  Rectification!!! Person in ROI  ******* Time : " , current_time)
@@ -186,12 +183,12 @@ def timer(algo,flag,cam):
 				if datetime.now() > Pst_time + timedelta(seconds=3) and Ptimer == 0 and Pcheck == 1:
 					Pflag = False
 					if Mtimer == 1:
-						Mtimer = 0
+						Mtimer =0
 					if Dtimer == 1:
-						Dtimer = 0
+						Dtimer =0
 					Ptimer=1
 					Pback=0
-					Pvideo=video_trigger(cam,"EVENT21_ON")
+					video_trigger(cam,"EVENT21_ON")
 					Pdetect=0
 					Ptrigger=datetime.now()
 					Pfp_time=datetime.now()
@@ -203,7 +200,7 @@ def timer(algo,flag,cam):
 					with open(event_file,'w') as efile:
 						#efile.write("EVENT21_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT21_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
-					event_call("EVENT21_ON",Pvideo)
+					event_call("EVENT21_ON",Pvideo,Ppath)
 					Pfp_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
@@ -224,16 +221,16 @@ def timer(algo,flag,cam):
 				if Dtimer != 0 and Ddetect > Dalert_frame:
 					if Dtimer ==1:
 						Dtimer=0
-						if Mtimer == 1:
-							Mtimer = 0
+						if Mtimer ==1:
+							Mtimer=0
 					elif Dtimer == 2 and Dback==0:
 						Dback=1
 						Drectify=datetime.now()
 						#Dtimer=0
-					elif Dback ==1 and datetime.now() > Drectify +timedelta(seconds=4):
+					elif Dback ==1 and datetime.now() > Drectify +timedelta(seconds=attentive_rectify):
 						with open(event_file,'w') as efile:
 							efile.write("EVENT22_OFF :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))		
-						event_call("EVENT22_OFF",None)
+						event_call("EVENT22_OFF",None,None)
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
 						print("*********  Rectification!!! Person is attentive  ******* Time : " , current_time)
@@ -245,10 +242,10 @@ def timer(algo,flag,cam):
 				if datetime.now() > Dst_time + timedelta(seconds=3) and Dtimer == 0 and Dcheck == 1:
 					flag = False
 					if Mtimer == 1:
-						Mtimer = 0
+						Mtimer=0
 					Dtimer=1
 					Dback=0
-					Dvideo=video_trigger(cam,"EVENT22_ON")
+					video_trigger(cam,"EVENT22_ON")
 					Ddetect=0
 					Dtrigger=datetime.now()
 					Dfp_time=datetime.now()
@@ -260,7 +257,7 @@ def timer(algo,flag,cam):
 					with open(event_file,'w') as efile:
 						#efile.write("EVENT22_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT22_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
-					event_call("EVENT22_ON",Dvideo)
+					event_call("EVENT22_ON",Dvideo,Dpath)
 					Dfp_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
@@ -285,10 +282,10 @@ def timer(algo,flag,cam):
 						Mback =1
 						Mrectify=datetime.now()
 						#Mtimer=0
-					elif Mback ==1 and datetime.now() > Mrectify +timedelta(seconds=attentive_rectify):
+					elif Mback ==1 and datetime.now() > Mrectify +timedelta(seconds=4):
 						with open(event_file,'w') as efile:
 							efile.write("EVENT23_OFF :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))			
-						event_call("EVENT23_OFF",None)
+						event_call("EVENT23_OFF",None,None)
 						current_time = datetime.now()
 						current_time = str(current_time)[10:]
 						print("*********  Rectification!!! Person is attentive  ******* Time : " , current_time)
@@ -301,7 +298,7 @@ def timer(algo,flag,cam):
 					flag = False
 					Mtimer=1
 					Mback=0
-					Mvideo=video_trigger(cam,"EVENT23_ON")
+					video_trigger(cam,"EVENT23_ON")
 					Mdetect=0
 					Mtrigger=datetime.now()
 					Mfp_time=datetime.now()
@@ -313,7 +310,7 @@ def timer(algo,flag,cam):
 					with open(event_file,'w') as efile:
 						#efile.write("EVENT23_OFF",(datetime.now()).strftime("%Y_%m_%dT%H-%M-%S"))
 						efile.write("EVENT23_ON :: "+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
-					event_call("EVENT23_ON",Mvideo)
+					event_call("EVENT23_ON",Mvideo,Mpath)
 					Mfp_time=datetime.now()
 					current_time = datetime.now()
 					current_time = str(current_time)[10:]
@@ -328,21 +325,13 @@ def timer(algo,flag,cam):
 		error.raised("9",str(e))
 
 def video_trigger(cam,event):
-	global vid_path,temp_folder
+	global video_flag
 	try:
-		if (Dtimer > 0 or Mtimer > 0 or Ptimer > 0):
-			vid_dir=(datetime.now()).strftime("%Y_%m_%d")
-			loc=gpu_path+vid_dir+"/"
-			vid_name="BHOPAL_BPCL_NX1_"+event+"_"+(datetime.now()).strftime("%Y-%m-%dT%H-%M-%S")+".avi"
-			vid_path = loc+vid_name
-			temp_file=temp_folder+vid_name
-			print("Path to the video {}".format(temp_file))
-			if not os.path.isdir(loc):
-				#print("make directory")
-				os.mkdir(loc)
-			video=Thread(target=start_video,args=(event,cam,temp_file))
-			video.start()
-			return temp_file
+			if video_flag == 0:
+				video=Thread(target=start_video,args=(cam,event))
+				video.start()
+				video_flag =1
+
 	except Exception as e:
 		print (str(e),"error in timer")
 		error.raised("9",str(e))

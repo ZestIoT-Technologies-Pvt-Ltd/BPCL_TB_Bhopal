@@ -61,4 +61,3 @@ def screening(frame):
 	except Exception as e:
 		print(e.__str__())
 		error.raised("9",str(e))
-
