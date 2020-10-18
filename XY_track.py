@@ -37,14 +37,13 @@ import traceback
 import numpy as np
 font = cv2.FONT_HERSHEY_SIMPLEX
 def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,moving):
-	global start_time
 	try:
 		obj=cyl
 		cyl_dict={}
 		diff_pixel=20
 		x_res=int(img.shape[1])
 		y_res=int(img.shape[0])
-		pts = np.array([[325,300],[300,620],[980,620],[978,300]])
+		pts = np.array([[855,505],[855,720],[1230,720],[1230,505]])
 		mask = np.zeros(img.shape[:2], np.uint8)
 		cv2.drawContours(mask, [pts], -1, (255, 255, 255), -1, cv2.LINE_AA)
 		dst = cv2.bitwise_and(img, img, mask=mask)
@@ -77,23 +76,22 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 		#print(track_dict,count,st_dict,moving,cyl)
 		count=count+1
 		if count == 1:
-			start_time=datetime.now()
 			st_dict=len(track_dict)
 	
 		elif len(track_dict) > st_dict:
-			if moving == False and datetime.now() > start_time+timedelta(seconds=1):
+			if moving == False and count >3:
 				moving = True
 				cyl,count,track_dict = 0,0,{}
 			elif moving == True:
 				moving = True
 				cyl,count,track_dict = 0,0,{}
 
-		elif datetime.now() > start_time+timedelta(seconds=5) and len(track_dict) == st_dict:
+		elif count > 15 and len(track_dict) == st_dict:
 			moving = False
 			cyl,count,track_dict = 0,0,{}
 			
 		elif len(result) < st_dict:
-			if moving == False and datetime.now() > start_time+timedelta(seconds=1):
+			if moving == False and count > 3:
 				moving = True
 				cyl,count,track_dict = 0,0,{}
 			elif moving == True:

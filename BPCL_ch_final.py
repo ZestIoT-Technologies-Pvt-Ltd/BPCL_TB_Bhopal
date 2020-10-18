@@ -34,7 +34,6 @@ import Roi
 import Motion
 import View
 import posenet
-#import RTSP
 import tracker_model
 import XY_track
 import Timer2 as Timer
@@ -44,17 +43,16 @@ import Health_Api
 import screening2
 import screening1
 
-screening1.create()
-screening2.create()
-screening1.connect()
-screening2.connect()
 config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"
 with open(config) as json_data:
 	info=json.load(json_data)
-	cam1,cam2= info["camera1"],info["camera2"]
+	cam1,cam2,ip,port1,port2= info["camera1"],info["camera2"],info["Pi_ip"],info["Port1"],info["Port2"]
 # initializing tracker variables
 count,moving,track_dict,st_dict,cyl = 0, False, {},0,0
-
+screening1.create()
+screening2.create()
+screening1.connect(ip,port1)
+screening2.connect(ip,port2)
 def Diagnostics():
 	try:
 		print("Inside Diagnostics function")

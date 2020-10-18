@@ -64,21 +64,16 @@ with open(config) as json_data:
 	Malert_time=Dalert_time
 	vid_duration,event_file,gpu_path,temp_folder = info["vid_duration"], info["event_file"],info["gpu_path"],info["temp_folder"]
 
-Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,Pfp_time,Pvideo,Ppath = 0,0,0,0,0,0,0,0,0,0
-Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback,Dfp_time,Dvideo,Dpath = 0,0,0,0,0,0,0,0,0,0
-Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback,Mfp_time,Mvideo,Mpath = 0,0,0,0,0,0,0,0,0,0
+Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,Pfp_time,Pvideo,Ppath,Pvend_time = 0,0,0,0,0,0,0,0,0,0,0
+Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback,Dfp_time,Dvideo,Dpath,Dvend_time = 0,0,0,0,0,0,0,0,0,0,0
+Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback,Mfp_time,Mvideo,Mpath,Mvend_time = 0,0,0,0,0,0,0,0,0,0,0
 vid_path="/media/smartcow/LFS/"
 video_flag =0
 temp_file="/media/smartcow/LFS/"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
-def start_video(cam,event):
-	global Dtimer,Ptimer,Mtimer,video_flag,Pvideo,Mvideo,Dvideo,Ppath,Dpath,Mpath
-	img = cam.get_frame()
-	img = cv2.resize(img,(1280,720))
-	encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
-	result, encimg = cv2.imencode('.jpg',img, encode_param) #Encoding frame
-	img = cv2.imdecode(encimg, 1)
+def start_video(event):
+	global Pvideo,Mvideo,Dvideo,Ppath,Dpath,Mpath,Pevent_out,Mevent_out,Devent_out,Pvend_time,Mvend_time,Dvend_time
 	vid_dir=(datetime.now()).strftime("%Y_%m_%d")
 	loc=gpu_path+vid_dir+"/"
 	vid_name="BHOPAL_BPCL_NX1_"+event+"_"+(datetime.now()).strftime("%Y-%m-%dT%H-%M-%S")+".avi"
@@ -90,26 +85,46 @@ def start_video(cam,event):
 	elif event == "EVENT22_ON":
 		Dpath = loc+vid_name
 		Dvideo = temp_folder+vid_name
-		Devent_out=cv2.VideoWriter(temp_file,fourcc, 3, (1280,720), True)
+		Devent_out=cv2.VideoWriter(Dvideo,fourcc, 3, (1280,720), True)
 		Dvend_time=datetime.now()+timedelta(seconds=vid_duration)
 	elif event == "EVENT23_ON":
 		Mpath = loc+vid_name
 		Mvideo = temp_folder+vid_name
-		Mevent_out=cv2.VideoWriter(temp_file,fourcc, 3, (1280,720), True)
+		Mevent_out=cv2.VideoWriter(Mvideo,fourcc, 3, (1280,720), True)
 		Mvend_time=datetime.now()+timedelta(seconds=vid_duration)
-	while (Ptimer > 0):
-		if datetime.now()>Pvend_time:
-			break
-		Pevent_out.write(img)
-	while (Dtimer > 0):
-		if datetime.now()>Dvend_time:
-			break
-		Devent_out.write(img)
-	while (Mtimer > 0):
-		if datetime.now()>Mvend_time:
-			break
-		Mevent_out.write(img)
-#TODO - logic to stop/kill  the thread 
+
+def video_function(event,cam):
+	global Pvend_time,Dvend_time,Mvend_time,Ptimer,Dtimer,Mtimer,Pevent_out,Devent_out,Mevent_out
+	img = cam.get_frame()
+	#print (img)
+	#cv2.imwrite("check.jpg",img)
+	img = cv2.resize(img,(1280,720))
+	encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
+	result, encimg = cv2.imencode('.jpg',img, encode_param) #Encoding frame
+	img = cv2.imdecode(encimg, 1)
+	while (Ptimer > 0 or Dtimer > 0 or Mtimer >0):
+		ls_time = datetime.now()
+		#print (Pvend_time)
+		if Pvend_time != 0:
+			if datetime.now()>Pvend_time:
+				#print ("******************* breaking **********************")
+				Pevent_out.release()
+				break
+			Pevent_out.write(img)
+			#print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&writen&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+		if Dvend_time != 0:
+			if datetime.now()>Dvend_time:
+				Devent_out.release()
+				break
+			Devent_out.write(img)
+		if Mvend_time != 0:
+			if datetime.now()>Mvend_time
+				Mevent_out.release():
+				break
+			Mevent_out.write(img)
+		le_time = datetime.now()
+		while(int((le_time -ls_time).total_seconds()*1000) < 300 ):
+				le_time = datetime.now()
 
 def event_call(event,temp,path):
 	global er
@@ -131,7 +146,7 @@ def event_call(event,temp,path):
 		else:
 			shutil.move(temp,path)
 			print("file moved from {} to {}".format(temp,path))
-			data={'event_time':logdate,'path':vid_path}
+			data={'event_time':logdate,'path':path}
 		print(data)
 		sc.send(time_stamp=logdate, message_type=event, data=data)
 		msg = sc.receive()
@@ -327,10 +342,12 @@ def timer(algo,flag,cam):
 def video_trigger(cam,event):
 	global video_flag
 	try:
-			if video_flag == 0:
-				video=Thread(target=start_video,args=(cam,event))
-				video.start()
-				video_flag =1
+		start_video(event)
+		time.sleep(1)
+		if video_flag == 0:
+			video=Thread(target=video_function,args=(event,cam))
+			video.start()
+			video_flag =1
 
 	except Exception as e:
 		print (str(e),"error in timer")
@@ -341,5 +358,6 @@ def reset():
 	print("Resetting timers in reset")
 	with open(event_file, 'w') as efile:
 		efile.write("EVENT_ALL_OFF ::"+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
-		event_call("EVENT21_OFF",None)
+		event_call("EVENT21_OFF",None,None)
 	Ptimer,Dtimer,Mtimer=0,0,0
+
