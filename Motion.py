@@ -13,7 +13,7 @@ Output: Number of personsons who are in motion
 Requirements:
 This function shall personform the following:
 1)For each personson it will identify whether the personson is in motion or not by considering the below key point coordinates, scores.
-  keypoints are nose,left shoulder,right shoulder,left wrist,right wrist
+  keypoints are nose,left ear,right ear,left wrist,right wrist
 2)Returns the number of personsons who are in motion
 '''    
 
@@ -50,9 +50,10 @@ def motion(motion_coords,motion_scores,view):
     number_motion=0
     for person in range(0,view):
         present_coords = []
-        for body_point in [0,5,6,9,10]:
+        #for body_point in [0,5,6,9,10]:
+        for body_point in [0,3,4,9,10]:
             landmark_coords=[0,0]
-            if round(motion_scores[person][body_point],1) >= 0.3:
+            if round(motion_scores[person][body_point],1) >= 0.2:
                 landmark_coords[0]=round(motion_coords[person][body_point][0],1)
                 landmark_coords[1]=round(motion_coords[person][body_point][1],1)
             else:
@@ -87,17 +88,17 @@ def motion(motion_coords,motion_scores,view):
             if count_check[person] == 1:
                 for j in range(0,5): # checking five body points
                     number_frames_difference=0
-                    if j == 1 or j == 2: # for shoulder landmarks we set threshold to 9
+                    if j == 1 or j == 2: # for ear landmarks we set threshold to 12
+                        pix_frames_difference = 12
+                    elif j == 3 or j == 4: # for wrist landmarks we set threshold to 18
+                        pix_frames_difference = 18
+                    else: # for nose landmark we set threshold to 9
                         pix_frames_difference = 9
-                    elif j == 3 or j == 4: # for wrist landmarks we set threshold to 11
-                        pix_frames_difference = 11
-                    else: # for nose landmark we set threshold to 7
-                        pix_frames_difference = 7
     
                     for k in range(0,8): # checking 8 frames values in frames_difference
                         if frames_difference[person][k][j] >= pix_frames_difference: # checking whether frames_difference values of landmarks are greater than or equal to respective threshold values
                             number_frames_difference = number_frames_difference+1
-                        if number_frames_difference >4 :         # if the difference of any landmarks exceeds its threshold 4 times in its previous 8 frames, we can say person is in motion
+                        if number_frames_difference > 2 :         # if the difference of any landmarks exceeds its threshold 3 times in its previous 8 frames, we can say person is in motion
                             #Mot_person[person]=1
                             number_motion=number_motion+1
                             break;

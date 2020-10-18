@@ -22,12 +22,23 @@ def view_detection(view_coords,view_scores,roi):
     number_view = 0
     motion_coords = []
     motion_scores = []
+    
     for person in range(0,roi):
-        nose_score, nose_x, nose_y, left_eye_y, right_eye_y, left_ear_score, right_ear_score, leftShoulder_x = view_scores[person][0], view_coords[person][0][0], view_coords[person][0][1], view_coords[person][1][1], view_coords[person][2][1], view_scores[person][3], view_scores[person][4], view_coords[person][5][0]
-        if (nose_score > 0.5) and (nose_y  < left_eye_y) and (nose_y > right_eye_y) and (left_ear_score > 0.3) and (right_ear_score > 0.3) and (nose_x < leftShoulder_x): 
-            motion_coords.append(view_coords[person])
-            motion_scores.append(view_scores[person])
-            #Viw_per[person]=1
-            number_view = number_view+1
-        
+        nose_score,left_eye_score, right_eye_score, nose_x, nose_y, left_eye_y, right_eye_y, left_ear_score, right_ear_score = view_scores[person][0],view_scores[person][1],view_scores[person][2], view_coords[person][0][0], view_coords[person][0][1], view_coords[person][1][1], view_coords[person][2][1], view_scores[person][3], view_scores[person][4]
+        left_shoulder_x, right_shoulder_x = view_coords[person][5][0], view_coords[person][6][0]
+        if (left_eye_score>=0.1 and right_eye_score>=0.1) :
+            if (nose_score > 0.35) and (nose_y < left_eye_y) and (nose_y > right_eye_y) and (left_eye_score>=0.65 and right_eye_score>=0.5) and (left_ear_score>0.1 or right_ear_score>0.1):
+                if nose_x+60 > left_shoulder_x and nose_x+60 > right_shoulder_x :
+                    motion_coords.append(view_coords[person])
+                    motion_scores.append(view_scores[person])
+                    #Viw_per[person]=1
+                    number_view = number_view+1
+                    
+            elif (nose_score <= 0.35) :
+                motion_coords.append(view_coords[person])
+                motion_scores.append(view_scores[person])
+                #Viw_per[person]=1
+                number_view = number_view+1
+
+
     return motion_coords,motion_scores,number_view
