@@ -27,6 +27,7 @@ encode_param = This variable shall be used to change the quality of the frame
 
 '''
 def create():
+	global client_socket
 	try:
 		client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	except Exception as e:
@@ -35,9 +36,10 @@ def create():
 		time.sleep(1)
 		create()
 
-def connect():	
+def connect():
+	global client_socket, encode_param
 	try:
-		client_socket.connect(('192.168.1.201', 8098))
+		client_socket.connect(('192.168.1.201', 8096))
 		connection = client_socket.makefile('wb')
 		encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
 	except Exception as e:
@@ -47,6 +49,7 @@ def connect():
 		connect()
 
 def screening(frame):
+	global client_socket, encode_param
 	try:
 		result, frame = cv2.imencode('.jpg', frame, encode_param)
 		data = pickle.dumps(frame, 0)
@@ -58,4 +61,3 @@ def screening(frame):
 	except Exception as e:
 		print(e.__str__())
 		error.raised("9",str(e))
-

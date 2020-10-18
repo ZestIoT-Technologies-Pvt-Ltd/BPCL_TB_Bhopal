@@ -19,7 +19,7 @@ This function shall perform the following:
 5)The view_angle method plots the conical shape stating which side they were looking and the coordinates are passed to motion function which return whether the person whos is in ROI and viewing in required direction is in motion or not.
 6)Based on the output of the ROI,view,motion methods the respective flags are sent to timer function.
 7)The Diagnostics methods finds the devices are in proper working condition or not.
-'''    
+'''
 import cv2
 from queue import Queue
 import traceback
@@ -34,10 +34,10 @@ import Roi
 import Motion
 import View
 import posenet
-import RTSP
+#import RTSP
 import tracker_model
 import XY_track
-import Timer
+import Timer2 as Timer
 import Angle
 import error
 import Health_Api
@@ -57,8 +57,10 @@ count,moving,track_dict,st_dict,cyl = 0, False, {},0,0
 
 def Diagnostics():
 	try:
+		print("Inside Diagnostics function")
 		Health_Api.apicall()
 	except Exception as e:
+		print(str(e))
 		error("6",str(e))
 
 class camera():
@@ -93,11 +95,12 @@ class camera():
 
 if __name__ == '__main__':
 	try:
-		#cam = cv2.VideoCapture("still.avi")
+		#cam = cv2.VideoCapture("/media/smartcow/LFS/temp/20201010183402.mp4")
 		sess=tf.compat.v1.Session()
 		model_cfg, model_outputs = posenet.load_model(101, sess)
 		output_stride = model_cfg['output_stride']
 		darknet_image_T,network_T,class_names_T=tracker_model.load_model()
+		Timer.reset()
 		print("Tracker model loaded")
 		cam1 = camera(cam1)
 		time.sleep(1)
@@ -106,13 +109,15 @@ if __name__ == '__main__':
 		ht_time=datetime.now()
 		#kk = 0
 		while True:
+			loop_start_time = datetime.now()
+			#print("loop start",loop_start_time)
 			img1 = cam1.get_frame()
 			img1 = cv2.resize(img1,(1280,720))
 			img2 = cam2.get_frame()
 			img2 = cv2.resize(img2,(1280,720))
 			#ret,img1 = cam.read()
 			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img2,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
-			
+			#moving =True
 			if moving == True:
 				input_image, draw_image, output_scale = posenet.read_imgfile(img1, scale_factor=0.7125, output_stride=output_stride)
 				heatmaps_result, offsets_result, displacement_fwd_result, displacement_bwd_result = sess.run(model_outputs,feed_dict={'image:0': input_image})
@@ -133,10 +138,10 @@ if __name__ == '__main__':
                 
 				if number_roi >= 1:
 					Timer.timer("person",True,cam1)
-					Roi_draw = " Person in ROI " + ": True":
+					Roi_draw = " Person in ROI " + ": True"
 				if number_roi == 0:
 					Timer.timer("person",False,cam1)
-					Roi_draw = " Person in ROI " + ": False":
+					Roi_draw = " Person in ROI " + ": False"
 				if number_roi >= 1 and number_view >= 1:
 					Timer.timer("direction",True,cam1)
 					View_draw = " Person View " + ": True"
@@ -170,7 +175,7 @@ if __name__ == '__main__':
 				
 				path = "/media/smartcow/LFS/output/"
 				path = path + str(kk) + ".jpg"
-				cv2.imwrite(path,overlay_image)
+				cv2.imwrite(path,img2)
 				kk = kk + 1
 				
 				overlay_image = cv2.resize(overlay_image,(640,480))
@@ -187,6 +192,12 @@ if __name__ == '__main__':
 				ht_time=datetime.now()+timedelta(minutes=5)
 			screening1.screening(img1)
 			screening2.screening(img2)
+			loop_end_time = datetime.now()
+			while(int((loop_end_time - loop_start_time).total_seconds()*1000) < 300 ):
+				loop_end_time = datetime.now()
+				#print("inside while loop")
+			#print("end_time",loop_end_time)
+			#print(str(datetime.now()))
 	except Exception as e:
 		print(str(e))
 		traceback.print_exc()
