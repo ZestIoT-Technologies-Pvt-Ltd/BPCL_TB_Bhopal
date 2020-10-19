@@ -1,12 +1,11 @@
 {
 	"error":{
-		"1":"Error in Main Function",
-		"2":"Error in Tracker Function",
-		"3":"Error in Person Function",
-		"4":"Error in Motion Function",
-		"5":"Error in Direction Function",
+		"1":"Not able to screen on port1",
+		"2":"Not avle to screen on Port2",
+		"3":"Error while calling th API",
+		"4":"Error while reading from camera1",
+		"5":"Error while reading from camera2",
 		"6":"Error in Hearbeat",
-		"7":"Error in API",
-		"8":"Error in loading camera feed"
+		"7":"Error Timer function",
 	}
 }

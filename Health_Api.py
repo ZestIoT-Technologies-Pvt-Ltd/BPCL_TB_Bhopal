@@ -106,7 +106,7 @@ def apicall():
         if er < 4:
             time.sleep(1)
             apicall(event)
-        error.raised("7",str(e))
+        error.raised("3",str(e))
 
     #while True:
     try:
@@ -120,6 +120,6 @@ def apicall():
         if int(msg["data"]["status"]) == 200:
             print("API success")
         else:
-            error.raised("8","API failed")
+            error.raised("3","API failed")
     except Exception as e:
-        error.raised("8",str(e))
+        error.raised("3",str(e))

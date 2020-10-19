@@ -136,7 +136,8 @@ def event_call(event,temp,path):
 		if er < 4:
 			time.sleep(1)
 			event_call(event,path)
-		error.raised("7",str(e))
+			break
+		error.raised("3",str(e))
 
 	try:
 		logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
@@ -155,10 +156,10 @@ def event_call(event,temp,path):
 			print("API success")
 		else:
 			print("API failed please check")
-			error.raised("8","API failed")
+			error.raised("3","API failed")
 	except Exception as e:
 		print("error in event_call function")
-		error.raised("8",str(e))
+		error.raised("3",str(e))
 
 
 def timer(algo,flag,cam):
@@ -337,7 +338,7 @@ def timer(algo,flag,cam):
 
 	except Exception as e:
 		print (str(e),"error in timer")
-		error.raised("9",str(e))
+		error.raised("7",str(e))
 
 def video_trigger(cam,event):
 	global video_flag
@@ -351,7 +352,7 @@ def video_trigger(cam,event):
 
 	except Exception as e:
 		print (str(e),"error in timer")
-		error.raised("9",str(e))
+		error.raised("7",str(e))
 
 def reset():
 	global Ptimer,Mtimer,Dtimer

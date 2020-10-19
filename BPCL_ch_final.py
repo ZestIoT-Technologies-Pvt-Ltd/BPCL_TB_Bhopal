@@ -109,10 +109,18 @@ if __name__ == '__main__':
 		while True:
 			loop_start_time = datetime.now()
 			#print("loop start",loop_start_time)
-			img1 = cam1.get_frame()
-			img1 = cv2.resize(img1,(1280,720))
-			img2 = cam2.get_frame()
-			img2 = cv2.resize(img2,(1280,720))
+			try:
+				img1 = cam1.get_frame()
+				img1 = cv2.resize(img1,(1280,720))
+			except Exception as e:
+				print("Not able to read camera1")
+				error.raised("4",str(e))
+			try:
+				img2 = cam2.get_frame()
+				img2 = cv2.resize(img2,(1280,720))
+			except Exception as e:
+				print("Not able to read camera2")
+				error.raised("5",str(e))
 			#ret,img1 = cam.read()
 			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img2,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
 			#moving =True
