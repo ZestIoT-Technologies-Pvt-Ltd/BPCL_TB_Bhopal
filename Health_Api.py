@@ -106,6 +106,7 @@ def apicall():
         if er < 4:
             time.sleep(1)
             apicall(event)
+            break
         error.raised("3",str(e))
 
     #while True:
