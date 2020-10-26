@@ -55,15 +55,19 @@ import shutil
 import time
 import os
 er =0
+config1="/home/smartcow/BPCL/BPCL_final/UI_parameters.json"
 config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"
 with open(config) as json_data:
 	info=json.load(json_data)
 	Palert_frame,Dalert_frame,Malert_frame= info["Palert_frame"],info["Dalert_frame"],info['Malert_frame']
-	Palert_time,Dalert_time=info["Person_ROI_unavailable"], info["Person_not_attentive"]
-	Roi_rectify,attentive_rectify=info["Person_ROI_rectify"],info["Person_attentive_rectify"]
-	Malert_time=Dalert_time
 	vid_duration,event_file,gpu_path,temp_folder = info["vid_duration"], info["event_file"],info["gpu_path"],info["temp_folder"]
 
+with open(config1) as json_data:
+	info =json.load(json_data)
+	Palert_time,Dalert_time=int(info["Person_ROI_unavailable"]), int(info["Person_not_attentive"])
+	Roi_rectify,attentive_rectify=int(info["Person_ROI_rectify"]),int(info["Person_attentive_rectify"])
+	Malert_time=Dalert_time
+print("Palert -> ", Palert_time, Dalert_time, Malert_time)
 Ptimer,Pdetect,Pcheck,Pst_time,Ptrigger,Prectify,Pback,Pfp_time,Pvideo,Ppath,Pvend_time = 0,0,0,0,0,0,0,0,0,0,0
 Dtimer,Ddetect,Dcheck,Dst_time,Dtrigger,Drectify,Dback,Dfp_time,Dvideo,Dpath,Dvend_time = 0,0,0,0,0,0,0,0,0,0,0
 Mtimer,Mdetect,Mcheck,Mst_time,Mtrigger,Mrectify,Mback,Mfp_time,Mvideo,Mpath,Mvend_time = 0,0,0,0,0,0,0,0,0,0,0
@@ -73,58 +77,62 @@ temp_file="/media/smartcow/LFS/"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 def start_video(event):
-	global Pvideo,Mvideo,Dvideo,Ppath,Dpath,Mpath,Pevent_out,Mevent_out,Devent_out,Pvend_time,Mvend_time,Dvend_time
+	global Pvideo,Mvideo,Dvideo,Ppath,Dpath,Mpath,Pevent_out,Mevent_out,Devent_out,Pvend_time,Mvend_time,Dvend_time,Palert_time,Dalert_time,Malert_time
 	vid_dir=(datetime.now()).strftime("%Y_%m_%d")
 	loc=gpu_path+vid_dir+"/"
+	if not os.path.isdir(loc):
+		#print("make directory")
+		os.mkdir(loc)
 	vid_name="BHOPAL_BPCL_NX1_"+event+"_"+(datetime.now()).strftime("%Y-%m-%dT%H-%M-%S")+".avi"
 	if event == "EVENT21_ON":
 		Ppath = loc+vid_name
 		Pvideo = temp_folder+vid_name
 		Pevent_out=cv2.VideoWriter(Pvideo,fourcc, 3, (1280,720), True)
-		Pvend_time=datetime.now()+timedelta(seconds=vid_duration)
+		Pvend_time=datetime.now()+timedelta(seconds=Palert_time)
 	elif event == "EVENT22_ON":
 		Dpath = loc+vid_name
 		Dvideo = temp_folder+vid_name
 		Devent_out=cv2.VideoWriter(Dvideo,fourcc, 3, (1280,720), True)
-		Dvend_time=datetime.now()+timedelta(seconds=vid_duration)
+		Dvend_time=datetime.now()+timedelta(seconds=Dalert_time)
 	elif event == "EVENT23_ON":
 		Mpath = loc+vid_name
 		Mvideo = temp_folder+vid_name
 		Mevent_out=cv2.VideoWriter(Mvideo,fourcc, 3, (1280,720), True)
-		Mvend_time=datetime.now()+timedelta(seconds=vid_duration)
+		Mvend_time=datetime.now()+timedelta(seconds=Malert_time)
 
 def video_function(event,cam):
 	global Pvend_time,Dvend_time,Mvend_time,Ptimer,Dtimer,Mtimer,Pevent_out,Devent_out,Mevent_out
-	img = cam.get_frame()
-	#print (img)
-	#cv2.imwrite("check.jpg",img)
-	img = cv2.resize(img,(1280,720))
-	encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
-	result, encimg = cv2.imencode('.jpg',img, encode_param) #Encoding frame
-	img = cv2.imdecode(encimg, 1)
-	while (Ptimer > 0 or Dtimer > 0 or Mtimer >0):
-		ls_time = datetime.now()
-		#print (Pvend_time)
-		if Pvend_time != 0:
-			if datetime.now()>Pvend_time:
-				#print ("******************* breaking **********************")
-				Pevent_out.release()
-				break
-			Pevent_out.write(img)
-			#print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&writen&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-		if Dvend_time != 0:
-			if datetime.now()>Dvend_time:
-				Devent_out.release()
-				break
-			Devent_out.write(img)
-		if Mvend_time != 0:
-			if datetime.now()>Mvend_time
-				Mevent_out.release():
-				break
-			Mevent_out.write(img)
-		le_time = datetime.now()
-		while(int((le_time -ls_time).total_seconds()*1000) < 300 ):
-				le_time = datetime.now()
+	while True:
+		if (Dtimer > 0 or Mtimer > 0 or Ptimer >0):
+			img = cam.get_frame()
+			#print (img)
+			#cv2.imwrite("check.jpg",img)
+			img = cv2.resize(img,(1280,720))
+			encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50] # Giving required quility
+			result, encimg = cv2.imencode('.jpg',img, encode_param) #Encoding frame
+			img = cv2.imdecode(encimg, 1)
+			ls_time = datetime.now()
+			#print (Pvend_time)
+			if Pvend_time != 0:
+				if datetime.now()>Pvend_time:
+					#print ("******************* breaking **********************")
+					Pvend_time=0
+					Pevent_out.release()
+				Pevent_out.write(img)
+				#print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&writen&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+			if Dvend_time != 0:
+				if datetime.now()>Dvend_time:
+					Dvend_time = 0
+					Devent_out.release()
+				Devent_out.write(img)
+			if Mvend_time != 0:
+				if datetime.now()>Mvend_time:
+					Mvend_time=0
+					Mevent_out.release()
+				Mevent_out.write(img)
+			le_time = datetime.now()
+			while(int((le_time -ls_time).total_seconds()*1000) < 300 ):
+					le_time = datetime.now()
 
 def event_call(event,temp,path):
 	global er
@@ -136,19 +144,28 @@ def event_call(event,temp,path):
 		if er < 4:
 			time.sleep(1)
 			event_call(event,path)
-			break
 		error.raised("3",str(e))
 
 	try:
 		logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
 		#print("video Path {}".format(vid_path))
 		if path  == None:
-			data={'event_time':logdate}
+			if event == "Reset":
+				data={'event_time':logdate,'event_description':"Reset function"}
+			elif event == "EVENT21_OFF":
+				data={'event_time':logdate,'event_description':"Person not in ROI Rectified"}
+			elif event == "EVENT22_OFF" or event == "EVENT23_OFF":
+				data={'event_time':logdate,'event_description':"Person not attentive Rectified"}
 		else:
 			shutil.move(temp,path)
 			print("file moved from {} to {}".format(temp,path))
-			data={'event_time':logdate,'path':path}
+			if event == "EVENT21_ON":
+				data={'event_time':logdate,'path':path,'event_descreiption':"Person not in ROI"}
+			elif event == "EVENT22_ON" or event == "EVENT23_ON":
+				data={'event_time':logdate,'path':path,'event_descreiption':"Person not attentive"}
 		print(data)
+		if event == "Reset":
+			event = "EVENT21_OFF"
 		sc.send(time_stamp=logdate, message_type=event, data=data)
 		msg = sc.receive()
 		print(msg)
@@ -359,6 +376,7 @@ def reset():
 	print("Resetting timers in reset")
 	with open(event_file, 'w') as efile:
 		efile.write("EVENT_ALL_OFF ::"+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
-		event_call("EVENT21_OFF",None,None)
+		event_call("Reset",None,None)
 	Ptimer,Dtimer,Mtimer=0,0,0
+
 

@@ -31,26 +31,26 @@ def create():
 	try:
 		client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	except Exception as e:
-		error.raised("1",str(e))
+		error.raised("8",str(e))
 		print("Not able to create client socket")
 		time.sleep(1)
 		create()
 
-def connect(ip,port1):
+def connect():
 	global client_socket, encode_param
 	try:
-		client_socket.connect((ip, port1))
+		client_socket.connect(('edgeai.local', 8097))
 		connection = client_socket.makefile('wb')
 		encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
 	except Exception as e:
-		error.raised("1",str(e))
+		error.raised("8",str(e))
 		print("Not able to connect to pi, will try again")
 		time.sleep(1)
-		connect(ip,port1)
+		connect()
 
 def screening(frame):
 	global client_socket, encode_param
-	try:		
+	try:
 		result, frame = cv2.imencode('.jpg', frame, encode_param)
 		data = pickle.dumps(frame, 0)
 		size = len(data)  # size of the frame
@@ -60,4 +60,4 @@ def screening(frame):
 		#print("s")
 	except Exception as e:
 		print(e.__str__())
-		error.raised("1",str(e))
+		error.raised("9",str(e))

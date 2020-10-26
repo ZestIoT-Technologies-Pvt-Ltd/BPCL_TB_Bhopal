@@ -37,14 +37,13 @@ import traceback
 import numpy as np
 font = cv2.FONT_HERSHEY_SIMPLEX
 def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,moving):
-	global start_time
 	try:
 		obj=cyl
 		cyl_dict={}
 		diff_pixel=20
 		x_res=int(img.shape[1])
 		y_res=int(img.shape[0])
-		pts = np.array([[325,300],[300,620],[980,620],[978,300]])
+		pts = np.array([[855,505],[855,720],[1230,720],[1230,505]])
 		mask = np.zeros(img.shape[:2], np.uint8)
 		cv2.drawContours(mask, [pts], -1, (255, 255, 255), -1, cv2.LINE_AA)
 		dst = cv2.bitwise_and(img, img, mask=mask)
@@ -54,6 +53,8 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 		result=darknet.detect_image(network,class_names,darknet_image, thresh=0.25)
 		#print(result)
 		for i,j in enumerate(result):
+			if float(j[1]) < 75 :
+				continue
 			cord=j[2]
 			xm=int((cord[0]) * float(x_res/416)) # cent coordinates
 			ym=int((cord[1]) * float(y_res/416))
@@ -77,23 +78,22 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 		#print(track_dict,count,st_dict,moving,cyl)
 		count=count+1
 		if count == 1:
-			start_time=datetime.now()
 			st_dict=len(track_dict)
 	
 		elif len(track_dict) > st_dict:
-			if moving == False and datetime.now() > start_time+timedelta(seconds=1):
+			if moving == False and count >3:
 				moving = True
 				cyl,count,track_dict = 0,0,{}
 			elif moving == True:
 				moving = True
 				cyl,count,track_dict = 0,0,{}
 
-		elif datetime.now() > start_time+timedelta(seconds=5) and len(track_dict) == st_dict:
+		elif count > 15 and len(track_dict) == st_dict:
 			moving = False
 			cyl,count,track_dict = 0,0,{}
 			
 		elif len(result) < st_dict:
-			if moving == False and datetime.now() > start_time+timedelta(seconds=1):
+			if moving == False and count > 3:
 				moving = True
 				cyl,count,track_dict = 0,0,{}
 			elif moving == True:
@@ -101,9 +101,10 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 				cyl,count,track_dict = 0,0,{}
 
 		print(moving)
-		cv2.putText(dst, "Moving : "+str(moving), (30,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-		return(moving,dst,track_dict,st_dict,count,cyl)
+		cv2.putText(img, "Moving : "+str(moving), (30,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+		return(moving,img,track_dict,st_dict,count,cyl)
 	except Exception as e:
 		print(str(e))
 		traceback.print_exc()
 		error.raised("2",str(e))
+
