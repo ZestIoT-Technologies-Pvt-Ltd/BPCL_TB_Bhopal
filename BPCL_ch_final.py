@@ -189,7 +189,7 @@ if __name__ == '__main__':
 				cv2.imshow("frame",overlay_image)
 				if cv2.waitKey(1) & 0xFF == ord('q'):
 					break'''
-			elif moving == False and prev_moving == True:
+			elif moving == True and prev_moving == False:
 				Timer.reset()
 			if ht_time < datetime.now():
 				health = Thread(target=Diagnostics,args=())
