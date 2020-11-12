@@ -43,7 +43,7 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 		diff_pixel=20
 		x_res=int(img.shape[1])
 		y_res=int(img.shape[0])
-		pts = np.array([[855,505],[855,720],[1230,720],[1230,505]])
+		pts = np.array([[295,560],[295,720],[1000,720],[1000,635]])
 		mask = np.zeros(img.shape[:2], np.uint8)
 		cv2.drawContours(mask, [pts], -1, (255, 255, 255), -1, cv2.LINE_AA)
 		dst = cv2.bitwise_and(img, img, mask=mask)

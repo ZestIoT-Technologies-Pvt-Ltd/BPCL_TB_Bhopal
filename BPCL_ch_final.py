@@ -8,8 +8,8 @@
 #   disseminations to the receiver's employees shall only be made on
 #   a strict need to know basis.
 
-Input: The model takes input from two cameras, one camera is used to find whether the cylinder bed is moving or not and the other one is used to find person attentiveness
-Output: The model sends the alarm values to the timer function based on person attentiveness
+Input: The model takes input from single camera, camera is used to find whether the cylinder bed is moving or not and also to find person attentiveness and presence in ROI
+Output: The model sends the alarm values to the timer function based on person attentiveness and Presence in ROI
 Requirements:
 This function shall perform the following:
 1)This function calls the track method passing the input feed of camera located over the cylinder bed, the track function returns whether the cylinder bed is moving or not.
@@ -34,11 +34,9 @@ import Roi1 as Roi
 import Motion
 import View
 import posenet
-#import RTSP
 import tracker_model
 import XY_frame as XY_track
 import Timer_single_1 as Timer
-#import Angle
 import error
 import Health_Api
 import screening2
@@ -104,8 +102,8 @@ if __name__ == '__main__':
 		print("Tracker model loaded")
 		cam1 = camera(cam1)
 		time.sleep(1)
-		cam2 = camera(cam2)
-		time.sleep(1)
+		#cam2 = camera(cam2)
+		#time.sleep(1)
 		ht_time=datetime.now()
 		#kk = 0
 		while True:
@@ -113,10 +111,10 @@ if __name__ == '__main__':
 			#print("loop start",loop_start_time)
 			img1 = cam1.get_frame()
 			img1 = cv2.resize(img1,(1280,720))
-			img2 = cam2.get_frame()
-			img2 = cv2.resize(img2,(1280,720))
+			#img2 = cam2.get_frame()
+			#img2 = cv2.resize(img2,(1280,720))
 			#ret,img1 = cam.read()
-			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img2,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
+			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img1,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
 			#moving =True
 			if moving == True:
 				input_image, draw_image, output_scale = posenet.read_imgfile(img1, scale_factor=0.7125, output_stride=output_stride)
@@ -189,7 +187,7 @@ if __name__ == '__main__':
 				cv2.imshow("frame",overlay_image)
 				if cv2.waitKey(1) & 0xFF == ord('q'):
 					break'''
-			elif moving == True and prev_moving == False:
+			if moving == True and prev_moving == False:
 				Timer.reset()
 			if ht_time < datetime.now():
 				health = Thread(target=Diagnostics,args=())
@@ -204,7 +202,7 @@ if __name__ == '__main__':
 				#print("inside while loop")
 			#print("end_time",loop_end_time)
 			#print(str(datetime.now()))
-			prev_moving == moving
+			prev_moving = moving
 	except Exception as e:
 		print(str(e))
 		traceback.print_exc()
