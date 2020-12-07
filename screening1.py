@@ -39,7 +39,7 @@ def create():
 def connect():
 	global client_socket, encode_param
 	try:
-		client_socket.connect(('192.168.1.201', 8097))
+		client_socket.connect(('edgeai.local', 8097))
 		connection = client_socket.makefile('wb')
 		encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
 	except Exception as e:
@@ -50,7 +50,7 @@ def connect():
 
 def screening(frame):
 	global client_socket, encode_param
-	try:		
+	try:
 		result, frame = cv2.imencode('.jpg', frame, encode_param)
 		data = pickle.dumps(frame, 0)
 		size = len(data)  # size of the frame

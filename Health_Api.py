@@ -123,3 +123,4 @@ def apicall():
             error.raised("8","API failed")
     except Exception as e:
         error.raised("8",str(e))
+#apicall()

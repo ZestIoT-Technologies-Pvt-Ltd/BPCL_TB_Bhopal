@@ -8,8 +8,8 @@
 #   disseminations to the receiver's employees shall only be made on
 #   a strict need to know basis.
 
-Input: The model takes input from two cameras, one camera is used to find whether the cylinder bed is moving or not and the other one is used to find person attentiveness
-Output: The model sends the alarm values to the timer function based on person attentiveness
+Input: The model takes input from single camera, camera is used to find whether the cylinder bed is moving or not and also to find person attentiveness and presence in ROI
+Output: The model sends the alarm values to the timer function based on person attentiveness and Presence in ROI
 Requirements:
 This function shall perform the following:
 1)This function calls the track method passing the input feed of camera located over the cylinder bed, the track function returns whether the cylinder bed is moving or not.
@@ -30,15 +30,13 @@ import json
 import time
 from datetime import datetime,timedelta
 import tensorflow as tf
-import Roi
+import Roi1 as Roi
 import Motion
 import View
 import posenet
-#import RTSP
 import tracker_model
-import XY_track
-import Timer2 as Timer
-import Angle
+import XY_frame as XY_track
+import Timer_single_1 as Timer
 import error
 import Health_Api
 import screening2
@@ -53,7 +51,7 @@ with open(config) as json_data:
 	info=json.load(json_data)
 	cam1,cam2= info["camera1"],info["camera2"]
 # initializing tracker variables
-count,moving,track_dict,st_dict,cyl = 0, False, {},0,0
+count,prev_moving,moving,track_dict,st_dict,cyl = 0,False, False, {},0,0
 
 def Diagnostics():
 	try:
@@ -104,8 +102,8 @@ if __name__ == '__main__':
 		print("Tracker model loaded")
 		cam1 = camera(cam1)
 		time.sleep(1)
-		cam2 = camera(cam2)
-		time.sleep(1)
+		#cam2 = camera(cam2)
+		#time.sleep(1)
 		ht_time=datetime.now()
 		#kk = 0
 		while True:
@@ -113,10 +111,10 @@ if __name__ == '__main__':
 			#print("loop start",loop_start_time)
 			img1 = cam1.get_frame()
 			img1 = cv2.resize(img1,(1280,720))
-			img2 = cam2.get_frame()
-			img2 = cv2.resize(img2,(1280,720))
+			#img2 = cam2.get_frame()
+			#img2 = cv2.resize(img2,(1280,720))
 			#ret,img1 = cam.read()
-			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img2,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
+			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img1,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
 			#moving =True
 			if moving == True:
 				input_image, draw_image, output_scale = posenet.read_imgfile(img1, scale_factor=0.7125, output_stride=output_stride)
@@ -133,27 +131,32 @@ if __name__ == '__main__':
                 
 				view_coords,view_scores,number_roi=Roi.roi_fun(keypoint_coords,keypoint_scores)
 				motion_coords,motion_scores,number_view=View.view_detection(view_coords,view_scores,number_roi)
-				img1 = Angle.view_angle(motion_coords,motion_scores,number_view,img1)
+				#img1 = Angle.view_angle(motion_coords,motion_scores,number_view,img1)
 				number_motion=Motion.motion(motion_coords,motion_scores,number_view)
                 
 				if number_roi >= 1:
 					Timer.timer("person",True,cam1)
-					Roi_draw = " Person in ROI " + ": True"
+					Roi_draw =  True
 				if number_roi == 0:
 					Timer.timer("person",False,cam1)
-					Roi_draw = " Person in ROI " + ": False"
+					Roi_draw = False
 				if number_roi >= 1 and number_view >= 1:
 					Timer.timer("direction",True,cam1)
-					View_draw = " Person View " + ": True"
+					View_draw =  True
 				if number_roi >= 1 and number_view == 0:
 					Timer.timer("direction",False,cam1)
-					View_draw = " Person View " + ": False"
+					View_draw =  False
 				if number_roi >= 1 and number_view >= 1 and number_motion == 1:
 					Timer.timer("motion",True,cam1)
-					Motion_draw = " Person Motion " + ": True"
+					Motion_draw = True
 				if number_roi >= 1 and number_view >=  1 and number_motion == 0:
 					Timer.timer("motion", False,cam1)
-					Motion_draw = " Person Motion " + ": False"
+					Motion_draw = False
+				img1 = cv2.putText(img1, "Person in ROI: True" , (20,70), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
+				if number_view >= 1 and number_motion ==1:
+					img1 = cv2.putText(img1, "Person Attentiveness: True" , (20,120), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
+				else:
+					img1 = cv2.putText(img1, "Person Attentiveness: False" , (20,120), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 0) , 2, cv2.LINE_AA)
 				
 				'''Roi_draw = " Person in ROI " + str(number_roi)
 				View_draw = " Person View " + str(number_view)
@@ -184,7 +187,7 @@ if __name__ == '__main__':
 				cv2.imshow("frame",overlay_image)
 				if cv2.waitKey(1) & 0xFF == ord('q'):
 					break'''
-			elif moving == False:
+			if moving == True and prev_moving == False:
 				Timer.reset()
 			if ht_time < datetime.now():
 				health = Thread(target=Diagnostics,args=())
@@ -192,12 +195,14 @@ if __name__ == '__main__':
 				ht_time=datetime.now()+timedelta(minutes=5)
 			screening1.screening(img1)
 			screening2.screening(img2)
+			tf.keras.backend.clear_session()
 			loop_end_time = datetime.now()
 			while(int((loop_end_time - loop_start_time).total_seconds()*1000) < 300 ):
 				loop_end_time = datetime.now()
 				#print("inside while loop")
 			#print("end_time",loop_end_time)
 			#print(str(datetime.now()))
+			prev_moving = moving
 	except Exception as e:
 		print(str(e))
 		traceback.print_exc()

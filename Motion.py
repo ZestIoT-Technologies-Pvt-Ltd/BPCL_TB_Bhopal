@@ -53,9 +53,15 @@ def motion(motion_coords,motion_scores,view):
         #for body_point in [0,5,6,9,10]:
         for body_point in [0,3,4,9,10]:
             landmark_coords=[0,0]
-            if round(motion_scores[person][body_point],1) >= 0.2:
+            if (body_point > 8 and body_point < 11) and round(motion_scores[person][body_point],1) >= 0.2:
+                
                 landmark_coords[0]=round(motion_coords[person][body_point][0],1)
                 landmark_coords[1]=round(motion_coords[person][body_point][1],1)
+            
+            elif (body_point < 8 or body_point > 11) and round(motion_scores[person][body_point],1) >= 0.1:
+                landmark_coords[0]=round(motion_coords[person][body_point][0],1)
+                landmark_coords[1]=round(motion_coords[person][body_point][1],1)
+                
             else:
                 landmark_coords[0] = -1#if landmark score is lessthan 0.1 we assign -1 to x and y coordinate of that landmark stating we donot consider that landmark for motion detection
                 landmark_coords[1] = -1
@@ -72,6 +78,7 @@ def motion(motion_coords,motion_scores,view):
                         absolute_difference[i]=x
                     else:
                         absolute_difference[i]=y   # else take y-coordinate frames_difference value
+            print(absolute_difference)
             frame_value = frame_id[person]      # getting the frame_id of person to store absolute difference values in frames_difference
             frames_difference[person][frame_value]=absolute_difference
             frame_value=frame_value+1
@@ -88,12 +95,12 @@ def motion(motion_coords,motion_scores,view):
             if count_check[person] == 1:
                 for j in range(0,5): # checking five body points
                     number_frames_difference=0
-                    if j == 1 or j == 2: # for ear landmarks we set threshold to 12
-                        pix_frames_difference = 12
-                    elif j == 3 or j == 4: # for wrist landmarks we set threshold to 18
-                        pix_frames_difference = 18
-                    else: # for nose landmark we set threshold to 9
-                        pix_frames_difference = 9
+                    if j == 1 or j == 2: # for ear landmarks we set threshold to 7
+                        pix_frames_difference = 7
+                    elif j == 3 or j == 4: # for wrist landmarks we set threshold to 10
+                        pix_frames_difference = 10
+                    else: # for nose landmark we set threshold to 7
+                        pix_frames_difference = 7
     
                     for k in range(0,8): # checking 8 frames values in frames_difference
                         if frames_difference[person][k][j] >= pix_frames_difference: # checking whether frames_difference values of landmarks are greater than or equal to respective threshold values

@@ -39,7 +39,7 @@ def create():
 def connect():
 	global client_socket, encode_param
 	try:
-		client_socket.connect(('192.168.1.201', 8096))
+		client_socket.connect(('edgeai.local', 8096))
 		connection = client_socket.makefile('wb')
 		encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
 	except Exception as e:
