@@ -1,8 +1,8 @@
 {
 	"comment":"Person_ROI_unavailable and other are time period in seconds for Alert Alarm for Person in ROI and Person attentiveness.",
-	"Person_ROI_unavailable":30,
+	"Person_ROI_unavailable":300,
 	"Person_ROI_rectify":30,
-	"Person_not_attentive":90,
+	"Person_not_attentive":300,
 	"Person_attentive_rectify":30,
 	"comment":"Time periodin hours when the water check is performed periodically",
 	"water_check_period":2,
