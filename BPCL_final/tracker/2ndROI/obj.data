@@ -1,0 +1,5 @@
+classes=1
+train = /home/siddharth/Downloads/Bhopal_PLant/files/train.txt
+valid = /home/siddharth/Downloads/Bhopal_PLant/files/test.txt
+names = /home/smartcow/BPCL/BPCL_final/tracker/2ndROI/obj.names
+backup =/home/srinivasan/Plant/backup
