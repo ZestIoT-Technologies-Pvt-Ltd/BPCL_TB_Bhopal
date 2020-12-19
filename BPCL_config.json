@@ -1,6 +1,8 @@
 {
-	"camera2":"rtsp://192.168.1.21/ch01.264",
-	"camera1":"rtsp://192.168.1.51/av0_0",
+	"camera1":"rtsp://192.168.1.21/av0_0",
+	"camera2":"rtsp://192.168.1.51/av0_0",
+	"first_check":"10:00:00",
+	"last_check":"17:20:00",
 	"Port1":8097,
 	"Port2":8096,
 	"Pi_ip":"192.168.1.201",
@@ -10,11 +12,11 @@
 	"Malert_frame":3,
 	"event_file":"/home/smartcow/BPCL/BPCL_final/last_event.txt",
 	"error_file":"/home/smartcow/BPCL/BPCL_final/error_file.txt",
-	"gpu_path":"/media/smartcow/LFS/video_storage/",
-	"temp_folder":"/media/smartcow/LFS/temp_video_storage/",
+	"gpu_path":"/media/smartcow/SD/video_storage/",
+	"temp_folder":"/media/smartcow/SD/temp_video_storage/",
 	"xy_tracker":{
-		"configPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny.cfg",
-		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny_best.weights",
+		"configPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov4-tiny_solapur.cfg",
+		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov4-tiny_solapur_best.weights",
 		"metaPath":"/home/smartcow/BPCL/BPCL_final/tracker/obj.data",
 		"alert_frame":20
 	}

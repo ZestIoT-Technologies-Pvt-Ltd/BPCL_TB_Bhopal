@@ -1,0 +1,6 @@
+ Try to load cfg: /home/smartcow/BPCL/BPCL_final/tracker/yolov4-tiny_solapur.cfg, weights: /home/smartcow/BPCL/BPCL_final/tracker/yolov4-tiny_solapur_best.weights, clear = 0 
+net.optimized_memory = 0 
+mini_batch = 1, batch = 2, time_steps = 1, train = 0 
+nms_kind: greedynms (1), beta = 0.600000 
+nms_kind: greedynms (1), beta = 0.600000 
+ Try to load weights: /home/smartcow/BPCL/BPCL_final/tracker/yolov4-tiny_solapur_best.weights 

@@ -8,6 +8,6 @@
 	"water_check_period":2,
 	"comment":"Time period in seconds for video of the ON Event",
 	"vid_duration":20,
-	"Plant_end_time":"17:30:00",
-	"Plant_start_time":"09:30:00"
+	"Plant_end_time":"23:59:00",
+	"Plant_start_time":"06:00:00"
 }

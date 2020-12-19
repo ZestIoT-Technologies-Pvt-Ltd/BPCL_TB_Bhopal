@@ -19,15 +19,18 @@ This function shall perform the following:
     
 import cv2
 import numpy as np
+import math
 '''
 Requiremnets: This variable shall be initialised with a 3*3 matrix with below values 
-[[ 1.12956964e+00, -2.96722771e+00,  1.12395551e+03],
- [ 1.42265577e+00,  2.55581764e+00, -1.21486532e+03],
- [-3.96099049e-05,  4.73503961e-03,  1.00000000e+00]]
+[[ 1.77928445e+00,  5.69877582e-01,-9.82152353e+02],
+ [-5.80034886e-16,  3.59466115e+00, -9.20233254e+02],
+ [ 1.99095433e-04,  2.69942866e-03,  1.00000000e+00]]
 '''
-ch_matrix_2mp = np.array([[ 1.12956964e+00, -2.96722771e+00,  1.12395551e+03],
- [ 1.42265577e+00,  2.55581764e+00, -1.21486532e+03],
- [-3.96099049e-05,  4.73503961e-03,  1.00000000e+00]])
+
+
+ch_matrix_2mp = np.array([[ 1.72049793e+00,  6.17194497e-01,-8.62657664e+02],
+ [-6.38690100e-17,  2.85664697e+00, -7.19875036e+02],
+ [ 4.63886711e-04,  1.96009039e-03,  1.00000000e+00]])
 
 def roi_fun(coordinates,scores):
     view_coords = []
@@ -44,7 +47,7 @@ def roi_fun(coordinates,scores):
                 landmark_coords[0] = -1
                 landmark_coords[1] = -1
             list_roi.append(landmark_coords)		
-
+        
         for i in range(9,-1,-1):
             x_coordinate = list_roi[i][1]
             y_coordinate = list_roi[i][0]
@@ -59,3 +62,4 @@ def roi_fun(coordinates,scores):
                 break
                    
     return view_coords,view_scores,number_roi
+

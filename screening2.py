@@ -29,7 +29,9 @@ encode_param = This variable shall be used to change the quality of the frame
 def create():
 	global client_socket
 	try:
+		#print("before scoket create connection 8096")
 		client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		#print("after socket create connection 8096")
 	except Exception as e:
 		error.raised("8",str(e))
 		print("Not able to create client socket")
@@ -39,9 +41,11 @@ def create():
 def connect():
 	global client_socket, encode_param
 	try:
-		client_socket.connect(('edgeai.local', 8096))
+		print("before socket connect creation 8096")
+		client_socket.connect(('edgeai', 8096))
 		connection = client_socket.makefile('wb')
 		encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
+		print("After socket clikent connection connect 8096")
 	except Exception as e:
 		error.raised("8",str(e))
 		print("Not able to connect to pi, will try again")

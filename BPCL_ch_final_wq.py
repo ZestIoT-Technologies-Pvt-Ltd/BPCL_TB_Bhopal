@@ -43,7 +43,7 @@ import error
 import Health_Api
 import screening2
 import screening1
-
+import water_check_rec as water_check
 screening1.create()
 screening2.create()
 screening1.connect()
@@ -51,10 +51,12 @@ screening2.connect()
 config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"
 with open(config) as json_data:
 	info=json.load(json_data)
-	cam1,cam2= info["camera1"],info["camera2"]
+	cam1,cam2,first_check,last_check= info["camera1"],info["camera2"],info["first_check"],info["last_check"]
 # initializing tracker variables
 count,prev_moving,moving,track_dict,st_dict,cyl = 0,False, False, {},0,0
-
+first_check = datetime.strptime(first_check,"%H:%M:%S")
+last_check = datetime.strptime(last_check,"%H:%M:%S")
+wt_flag =0
 def Diagnostics():
 	try:
 		print("Inside Diagnostics function")
@@ -94,6 +96,8 @@ class camera():
 			return self.frame
 
 if __name__ == '__main__':
+	global wat_check
+	global wat_rectify
 	try:
 		#cam = cv2.VideoCapture("/media/smartcow/SD/video_storage/2020_12_12/BHOPAL_BPCL_NX1_PERSON_NOT_ATTENTIVE_EVENT22_ON_2020-12-12T10-48-44.avi")
 		sess=tf.compat.v1.Session()
@@ -202,6 +206,22 @@ if __name__ == '__main__':
 			screening1.screening(img1)
 			screening2.screening(img2)
 			tf.keras.backend.clear_session()
+			loop_end_time = datetime.now()
+			if (loop_end_time.time() >= first_check.time() and loop_end_time.time() < last_check.time() and moving == True):
+				if wt_flag == 0:
+					water_check.water_quality(img1)
+					wt_time= datetime.now()+timedelta(minutes=1)
+					wt_flag = wt_flag + 1
+				elif wt_time < datetime.now() and wt_flag > 0:
+					water_check.water_quality(img1)
+					wt_time= datetime.now()+timedelta(minutes=1)
+					wt_flag=wt_flag+1
+				elif wt_flag >= 10:
+					first_check=first_check+timedelta(minutes=60)
+					wt_flag = 0
+					wat_check = 0
+					wat_rectify = 0
+
 			loop_end_time = datetime.now()
 			while(int((loop_end_time - loop_start_time).total_seconds()*1000) < 300 ):
 				loop_end_time = datetime.now()

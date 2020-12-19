@@ -40,10 +40,10 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 	try:
 		obj=cyl
 		cyl_dict={}
-		diff_pixel=20
+		diff_pixel=30
 		x_res=int(img.shape[1])
 		y_res=int(img.shape[0])
-		pts = np.array([[295,560],[295,720],[1000,720],[1000,635]])
+		pts = np.array([[630,0],[630,420],[900,420],[900,0]])
 		mask = np.zeros(img.shape[:2], np.uint8)
 		cv2.drawContours(mask, [pts], -1, (255, 255, 255), -1, cv2.LINE_AA)
 		dst = cv2.bitwise_and(img, img, mask=mask)
@@ -60,7 +60,7 @@ def track(img,darknet_image,network,class_names,track_dict,st_dict,count,cyl,mov
 			ym=int((cord[1]) * float(y_res/416))
 			if cyl > 0:
 				for key in track_dict:
-					if abs(xm - int(track_dict[key]['xco'])) < diff_pixel:
+					if abs(ym - int(track_dict[key]['yco'])) < diff_pixel:
 						cyl_dict={}
 						cyl_dict[key]={'xco':xm,'yco':ym}
 						break

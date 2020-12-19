@@ -75,9 +75,10 @@ def health():
         avail_memory=Popen(['grep','mmc'],stdin=total_memory.stdout,stdout=PIPE)
         avail_memory=(avail_memory.communicate()[0]).decode('ascii')
         avail_memory=avail_memory.split(" ")
+        #print(avail_memory)
         total_memory=avail_memory[4]
-        mem_percentage=avail_memory[12]
-        mem_left=avail_memory[10]
+        mem_percentage=avail_memory[13]
+        mem_left=avail_memory[11]
         #print (avail_memory[7])
         #memory = avail_memory.split(" ")[-2]
         if len(avail_memory) > 15:
@@ -100,7 +101,7 @@ def health():
 def apicall():
     global er
     try:
-        sc = ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
+        sc = ClientSocket(device_id=str('BPCL_SUR_NX_0001'))
     except Exception as e:
         er=er+1
         if er < 4:
@@ -123,4 +124,4 @@ def apicall():
             error.raised("8","API failed")
     except Exception as e:
         error.raised("8",str(e))
-#apicall()
+apicall()
