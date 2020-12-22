@@ -7,7 +7,7 @@ import error
 import os
 wat_check =0
 wat_rectify =0
-wat_quality =1
+wat_quality =0
 water_path="/media/smartcow/SD/video_storage/"
 water_temp="/media/smartcow/SD/temp_video_storage/"
 def water_quality(img1):
@@ -25,52 +25,29 @@ def water_quality(img1):
 	green = sum_col[1]
 	red = sum_col[2]
 	string = "R :"+ str(red)+" G : "+ str(green)+" B : "+str(blue)
-	im1 = cv2.putText(im1, string, (20,50), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 255) , 2, cv2.LINE_AA)
+	im1 = cv2.putText(im1, string, (20,100), cv2.FONT_HERSHEY_SIMPLEX , 1,  (255, 0, 255) , 2, cv2.LINE_AA)
 	cv2.imwrite(water_temp+img_name,im1)
 	print("Red -> {}   Green -> {}   Blue -> {} ".format(red,green,blue))
 	if wat_quality == 0 :
 		if int(red) > 70000 and int(green) > 70000 and int(blue) > 100000 :
+			print("******************* Warning ********************")
 			wat_check=wat_check +1
 
 
-	if wat_check > 5 and wat_quality ==0:
-		img_dir=(datetime.now()).strftime("%Y_%m_%d")
-		wat_quality =1
-		shutil.move(water_temp+img_name,water_path+img_dir+"/"+img_name)
-		print("***************************** Water Quality not good ***************************")
-		try:
-			sc=ClientSocket(device_id=str('BPCL_SUR_NX_0001'))
-			logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-			data={'event_time':logdate,'event_description':"Water Quality Not Good"}
-			sc.send(time_stamp=logdate, message_type="EVENT1_ON", data=data)
-			msg = sc.receive()
-			print(msg)
-			wat_check =0
-			if int(msg["data"]["status"]) == 200:
-				print("API success")
-			else:
-				print("API failed please check")
-				error.raised("3","API failed")
-		except Exception as e:
-			print("error in event_call function")
-			error.raised("3",str(e))
-
-	if wat_quality ==1:
-		if int(red) < 60000 and int(green) < 60000 and int(blue) < 100000:
-			wat_rectify=wat_rectify+1
-		if wat_rectify >5 :
-			wat_quality =0
+		if wat_check > 4:
 			img_dir=(datetime.now()).strftime("%Y_%m_%d")
-			shutil.move(water_temp+img_name,water_path+img_dir+"/"+img_name)
-			print("***************************** Water Qualit Restored ***************************")
+			wat_quality =1
+			wat_path = water_path+img_dir+"/SOLAPUR_EVENT1_ON_"+img_name
+			shutil.move(water_temp+img_name,wat_path)
+			print("***************************** Water Quality not good ***************************")
 			try:
 				sc=ClientSocket(device_id=str('BPCL_SUR_NX_0001'))
 				logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-				data={'event_time':logdate,'event_description':"Water Quality Reatored"}
-				sc.send(time_stamp=logdate, message_type="EVENT1_OFF", data=data)
+				data={'event_time':logdate,'path':wat_path,'event_description':"Water Quality Not Good"}
+				sc.send(time_stamp=logdate, message_type="EVENT1_ON", data=data)
 				msg = sc.receive()
 				print(msg)
-				wat_rectify =0
+				wat_check =0
 				if int(msg["data"]["status"]) == 200:
 					print("API success")
 				else:
@@ -79,4 +56,34 @@ def water_quality(img1):
 			except Exception as e:
 				print("error in event_call function")
 				error.raised("3",str(e))
+
+	if wat_quality ==1:
+		if int(red) < 45000 and int(green) < 45000 and int(blue) < 85000:
+			wat_rectify=wat_rectify+1
+			print("********************* Restored *******************")
+		if wat_rectify >4 :
+			wat_quality =0
+			img_dir=(datetime.now()).strftime("%Y_%m_%d")
+			shutil.move(water_temp+img_name,water_path+img_dir+"/SOLAPUR_EVENT1_OFF_"+img_name)
+			water_rectify()
+			wat_rectify=0
+			print("***************************** Water Qualit Restored ***************************")
+
+def water_rectify():
+	try:
+		sc=ClientSocket(device_id=str('BPCL_SUR_NX_0001'))
+		logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+		data={'event_time':logdate,'event_description':"Water Quality Restored"}
+		sc.send(time_stamp=logdate, message_type="EVENT1_OFF", data=data)
+		msg = sc.receive()
+		print(msg)
+		#wat_rectify =0
+		if int(msg["data"]["status"]) == 200:
+			print("API success")
+		else:
+			print("API failed please check")
+			error.raised("3","API failed")
+	except Exception as e:
+		print("error in event_call function")
+		error.raised("3",str(e))
 

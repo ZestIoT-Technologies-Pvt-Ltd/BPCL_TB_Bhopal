@@ -105,6 +105,7 @@ if __name__ == '__main__':
 		output_stride = model_cfg['output_stride']
 		darknet_image_T,network_T,class_names_T=tracker_model.load_model()
 		Timer.reset()
+		water_check.water_rectify()
 		print("Tracker model loaded")
 		cam1 = camera(cam1)
 		time.sleep(1)

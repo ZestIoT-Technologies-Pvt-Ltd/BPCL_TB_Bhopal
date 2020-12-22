@@ -1,7 +1,7 @@
 {
 	"camera1":"rtsp://192.168.1.21/av0_0",
 	"camera2":"rtsp://192.168.1.51/av0_0",
-	"first_check":"10:00:00",
+	"first_check":"13:00:00",
 	"last_check":"17:20:00",
 	"Port1":8097,
 	"Port2":8096,

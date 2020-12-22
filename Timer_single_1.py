@@ -165,9 +165,9 @@ def event_call(event,temp,path):
 			shutil.move(temp,path)
 			print("file moved from {} to {}".format(temp,path))
 			if event == "EVENT21_ON":
-				data={'event_time':logdate,'path':path,'event_descreiption':"Person not in ROI"}
+				data={'event_time':logdate,'path':path,'event_description':"Person not in ROI"}
 			elif event == "EVENT22_ON" or event == "EVENT23_ON":
-				data={'event_time':logdate,'path':path,'event_descreiption':"Person not attentive"}
+				data={'event_time':logdate,'path':path,'event_description':"Person not attentive"}
 		print(data)
 		if event == "Reset":
 			event = "EVENT21_OFF"
