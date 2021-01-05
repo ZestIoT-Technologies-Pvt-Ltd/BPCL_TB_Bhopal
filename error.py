@@ -1,16 +1,14 @@
 import json
 from datetime import datetime
-config = "/home/smartcow/BPCL/BPCL_final/error.json"
-error_state="/home/smartcow/BPCL/BPCL_final/error_code.txt"
-def raised(er,error_string):
+config = "/home/nvidia/BPCL/BPCL_final/error.json"
+error_state="/home/nvidia/BPCL/BPCL_final/error_code.txt"
+error_code = 0x0
+def raised(er,er_string):
 	try:
-		with open(config) as json_data:
-			info = json.load(json_data)
-			error_time=str(datetime.now())
-			error_string=error_string.replace("'"," ")
-			with open(error_state,'w') as f:
-				f.write("{} :: {} :: {} ****".format(info["error"][er],error_time,error_string))
-				f.close()
-			json_data.close()
+		error_code = error_code | er
+		with open(error_state,'w') as f:
+			logdate=(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+			f.write(str({"error_code":error_code,"error_algo":er_string,"error_time":logdate}))
+			f.close()
 	except Exception as e:
 		print (str(e))

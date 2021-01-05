@@ -20,7 +20,7 @@ Requirements:
 
 import darknet
 import json
-config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"
+config="/home/nvidia/BPCL/BPCL_final/BPCL_config.json"
 with open(config) as json_data:
 	info= json.load(json_data)
 	configPath,weightPath,metaPath= info["xy_tracker"]["configPath"],info["xy_tracker"]["weightPath"],info["xy_tracker"]["metaPath"]

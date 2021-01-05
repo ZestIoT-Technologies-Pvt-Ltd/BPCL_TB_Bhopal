@@ -19,23 +19,23 @@ This function shall personform the following:
 
 import numpy as np
 
-frame_count=[0,0,0,0,0] # To check whether it is first frame of person or not
+frame_count=[0,0,0,0,0,0] # To check whether it is first frame of person or not
 '''
 frame_count: This variable shall be initialised with list of 5 zeros and it is used for checking the person in current frame is also in previous frame
 '''
-previous_coords = np.zeros([5,5,2], dtype = int) # Storing first frame value of maximum 5 person
+previous_coords = np.zeros([5,6,2], dtype = int) # Storing first frame value of maximum 5 person
 '''
 previous_coords: This variable shall be initialised with an array of size 5*5*2 with zero values,size represents 5-persons*5-landmarks*2-coordinates. It is used to store coordinate values of persons in previous frame.
 '''  
-frames_difference= np.zeros([5,8,5], dtype = int)  # TO store 8 frames value of maximum 5
+frames_difference= np.zeros([5,8,6], dtype = int)  # TO store 8 frames value of maximum 5
 '''
 frames_difference: This variable shall be initialised with an array of size 5*8*5 with zero values,size represents 5-persons*8-frames*5-landmarks. It is used to store the difference values of coordinates between current frame and previous frame up to past 8 frames.
 '''  
-count_check = [0,0,0,0,0]
+count_check = [0,0,0,0,0,0]
 '''
 count_check:  This variable shall be initialised with list of 5 zeros, It is used to find whether a person difference values of coordinates are stored up to last 7 frames, so that we can check for motion detection.
 '''
-frame_id=[0,0,0,0,0]
+frame_id=[0,0,0,0,0,0]
 '''
 frame_id: This variable shall be initialised with list of 5 zeros and it is used as index for storing absolute difference values between frames in frames_difference.
 '''
@@ -51,7 +51,7 @@ def motion(motion_coords,motion_scores,view):
     for person in range(0,view):
         present_coords = []
         #for body_point in [0,5,6,9,10]:
-        for body_point in [0,3,4,9,10]:
+        for body_point in [5,6,3,4,9,10]:
             landmark_coords=[0,0]
             if (body_point > 8 and body_point < 11) and round(motion_scores[person][body_point],1) >= 0.2:
                 
@@ -67,8 +67,8 @@ def motion(motion_coords,motion_scores,view):
                 landmark_coords[1] = -1
             present_coords.append(landmark_coords)
         if frame_count[person] == 1:
-            absolute_difference = [0,0,0,0,0]
-            for i in range(0,5):
+            absolute_difference = [0,0,0,0,0,0]
+            for i in range(0,6):
                 if present_coords[i][0] == -1 or previous_coords[person][i][0] == -1:
                     absolute_difference[i]=-1       # if present or previous coordinates of landmark is -1 then we assign absolute difference to -1
                 else :
@@ -92,12 +92,13 @@ def motion(motion_coords,motion_scores,view):
             previous_coords[person][2]=present_coords[2]
             previous_coords[person][3]=present_coords[3]
             previous_coords[person][4]=present_coords[4]
+            previous_coords[person][5]=present_coords[5]
             if count_check[person] == 1:
-                for j in range(0,5): # checking five body points
+                for j in range(0,6): # checking five body points
                     number_frames_difference=0
-                    if j == 1 or j == 2: # for ear landmarks we set threshold to 7
+                    if j == 0 or j == 1: # for ear landmarks we set threshold to 7
                         pix_frames_difference = 7
-                    elif j == 3 or j == 4: # for wrist landmarks we set threshold to 10
+                    elif j == 4 or j == 5: # for wrist landmarks we set threshold to 10
                         pix_frames_difference = 10
                     else: # for nose landmark we set threshold to 7
                         pix_frames_difference = 7
@@ -121,6 +122,7 @@ def motion(motion_coords,motion_scores,view):
             previous_coords[person][2]=present_coords[2]
             previous_coords[person][3]=present_coords[3]
             previous_coords[person][4]=present_coords[4]
+            previous_coords[person][5]=present_coords[5]
         if number_motion ==1:
             break
 

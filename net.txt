@@ -1,0 +1,4 @@
+{'event': 'EVENT21_OFF', 'data': {'event_time': '2020-12-30 18:45:58', 'event_description': 'Person not in ROI Rectified'}}
+{'event': 'EVENT23_ON', 'data': {'event_time': '2020-12-30 18:46:08', 'path': '/media/49AE-64D6/video_storage/2020_12_30/JALGAON_BPCL_NX1_PERSON_NOT_ATTENTIVE_EVENT23_ON_2020-12-30T18-45-57.avi', 'event_description': 'Person not attentive'}}
+{'event': 'EVENT23_OFF', 'data': {'event_time': '2020-12-30 18:47:02', 'event_description': 'Person not attentive Rectified'}}
+{'event': 'EVENT21_ON', 'data': {'event_time': '2020-12-30 18:49:32', 'path': '/media/49AE-64D6/video_storage/2020_12_30/JALGAON_BPCL_NX1_PERSON_NOT_IN_ROI_EVENT21_ON_2020-12-30T18-49-21.avi', 'event_description': 'Person not in ROI'}}

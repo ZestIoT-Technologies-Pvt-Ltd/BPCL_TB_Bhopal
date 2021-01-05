@@ -1,8 +1,10 @@
 import time
+import json
 from sockets import ClientSocket
 from pynng import Timeout
 from datetime import datetime, timedelta
 from subprocess import Popen, PIPE
+import subprocess
 import error
 """
 Input: error_file,event file
@@ -20,8 +22,8 @@ Requirements
 """
 global er
 er=0
-error_file="/home/smartcow/BPCL/BPCL_final/error_code.txt"
-last_event="/home/smartcow/BPCL/BPCL_final/last_event.txt"
+error_file="/home/nvidia/BPCL/BPCL_final/error_code.txt"
+last_event="/home/nvidia/BPCL/BPCL_final/last_event.txt"
 def health():
         try:
                 with open(last_event,'r+') as event:
@@ -44,7 +46,7 @@ def health():
                         #print(" Last Error: {} has occured in {} part of the script at {}".format(error,error_algo,error_time))
         except Exception as e:
                 print(str(e))
-        tegra=Popen(['/home/smartcow/tegrastats'],stdout=PIPE)
+        tegra=Popen(['/home/nvidia/tegrastats'],stdout=PIPE)
         time.sleep(7)
         tegra.kill()
         info=(tegra.communicate()[0]).decode('ascii')
@@ -69,7 +71,7 @@ def health():
         #Tdiode=info[17].split("@")[-1]
         PMIC=info[16].split("@")[-1]
         thermal=info[19].split("@")[-1]
-
+        
         # Memory left and usage in percentage
         total_memory=Popen(['df','-BM'],stdout=PIPE)
         avail_memory=Popen(['grep','mmc'],stdin=total_memory.stdout,stdout=PIPE)
@@ -78,13 +80,14 @@ def health():
         total_memory=avail_memory[4]
         mem_percentage=avail_memory[12]
         mem_left=avail_memory[10]
-        #print (avail_memory[7])
+        #print (avail_memory[5])
         #memory = avail_memory.split(" ")[-2]
         if len(avail_memory) > 15:
                 ext_memory =avail_memory[-2]
-        else:
+        else: 
                 ext_memory="None"
         #print ("Temperature of different components\nBCPU: {}\nMCPU: {}\nGPU: {}\nPLL: {}\nTboard: {}\nTdiode: {}\nPMIC: {}\nthermal: {}\n".format(BCPU,MCPU,GPU_t,PLL_t,Tboard,Tdiode,PMIC,thermal))
+        #print ("temperature")
         last_start=Popen(['tuptime','--list'],stdout=PIPE)
         last_start=(last_start.communicate()[0]).decode('ascii')
         last_start=last_start.split(": ")
@@ -100,12 +103,12 @@ def health():
 def apicall():
     global er
     try:
-        sc = ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
+        sc = ClientSocket(device_id=str('BPCL_JAL_NX_0001'))
     except Exception as e:
         er=er+1
         if er < 4:
             time.sleep(1)
-            apicall(event)
+            apicall()
         error.raised("7",str(e))
 
     #while True:
@@ -119,8 +122,31 @@ def apicall():
         print(msg)
         if int(msg["data"]["status"]) == 200:
             print("API success")
+            net_event(sc)
         else:
             error.raised("8","API failed")
     except Exception as e:
+        print(str(e))
         error.raised("8",str(e))
 #apicall()
+
+def net_event(sc):
+    try:
+        print("************************************* Checking previous events *****************************")
+        with open("/home/nvidia/BPCL/BPCL_final/net_event.txt","r+") as f:
+            for i in f.readlines():
+                i=i.replace("'",'"')
+                print(i)
+                net_line = json.loads(i)
+                #print("here")
+                data = net_line["data"]
+                event = net_line["event"]
+                logdate = net_line["data"]["event_time"]
+                #print(data,event,logdate)
+                sc.send(time_stamp=logdate, message_type=event, data=data)
+                msg = sc.receive()
+                print(msg)
+                subprocess.call(["sed -i 1d /home/nvidia/BPCL/BPCL_final/net_event.txt"],shell=True)
+    except Exception as e:
+        print(str(e))
+apicall()

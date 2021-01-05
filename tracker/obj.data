@@ -1,5 +1,5 @@
 classes=1
-train = /home/srinivasan/cylinder/train.txt
-valid = /home/srinivasan/cylindertest.txt
-names = /home/smartcow/BPCL/BPCL_final/tracker/obj.names
-backup =/home/srinivasan/cylinder/backup
+train = /home/nvidia/BPCL/BPCL_final/tracker/train.txt
+valid = /home/nvidia/BPCL/BPCL_final/tracker/test.txt
+names = /home/nvidia/BPCL/BPCL_final/tracker/obj.names
+backup =/home/nvidia/BPCL/BPCL_final/backup

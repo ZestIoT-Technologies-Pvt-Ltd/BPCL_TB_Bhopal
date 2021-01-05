@@ -6,7 +6,7 @@ from pynng import Pair1, TLSConfig
 
 
 class Config(object):
-    FILE_DIR = '/home/smartcow/BPCL/BPCL_final/client/files'
+    FILE_DIR = '/home/nvidia/BPCL/BPCL_final/client/files'
     #KEY_PAIR = os.path.join(FILE_DIR, 'key_pair.pem')
     CA_CERT = os.path.join(FILE_DIR, 'ca.crt')
     SOCKET_URL = 'tls+tcp://edgeai.local:55555'
