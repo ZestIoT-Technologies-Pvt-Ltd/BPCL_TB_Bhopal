@@ -1,21 +1,24 @@
 {
 	"camera2":"rtsp://192.168.1.21/ch01.264",
 	"camera1":"rtsp://192.168.1.51/av0_0",
-	"Port1":8097,
-	"Port2":8096,
-	"Pi_ip":"192.168.1.201",
 	"comment":"Palert_frame is the number of False positives considered in 5 seconds for Person in ROI similarly for Dalert_frame, Malert_frame for Motion and Direction",
 	"Dalert_frame":3,
 	"Palert_frame":3,
 	"Malert_frame":3,
+	"Pi_ip":"192.168.1.201",
+	"comment":"Time periodin hours when the water check is performed periodically",
+	"first_check":"10:00:00",
+	"last_check":"16:00:00",
+	"comment":"Time period in seconds for video of the ON Event",
 	"event_file":"/home/smartcow/BPCL/BPCL_final/last_event.txt",
 	"error_file":"/home/smartcow/BPCL/BPCL_final/error_file.txt",
 	"gpu_path":"/media/smartcow/LFS/video_storage/",
 	"temp_folder":"/media/smartcow/LFS/temp_video_storage/",
+	"net_file":"/home/smartcow/BPCL/BPCL_final/net_event.txt",
 	"xy_tracker":{
-		"configPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny.cfg",
-		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov3-tiny_best.weights",
-		"metaPath":"/home/smartcow/BPCL/BPCL_final/tracker/obj.data",
+		"configPath":"/home/smartcow/BPCL/BPCL_final/tracker/2ndROI/yolov4-tiny.cfg",
+		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/2ndROI/yolov4-tiny_best.weights",
+		"metaPath":"/home/smartcow/BPCL/BPCL_final/tracker/2ndROI/obj.data",
 		"alert_frame":20
 	}
 }

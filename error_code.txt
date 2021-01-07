@@ -1,1 +1,1 @@
-Main script :: 2020-09-04 23:43:43.551358 :: None ****
+Error in loading camera feed :: 2021-01-06 08:30:30.791382 :: [Errno -2] Name or service not known ****

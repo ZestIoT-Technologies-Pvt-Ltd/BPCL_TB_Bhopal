@@ -8,8 +8,8 @@
 #   disseminations to the receiver's employees shall only be made on
 #   a strict need to know basis.
 
-Input: The model takes input from single camera, camera is used to find whether the cylinder bed is moving or not and also to find person attentiveness and presence in ROI
-Output: The model sends the alarm values to the timer function based on person attentiveness and Presence in ROI
+Input: The model takes input from two cameras, one camera is used to find whether the cylinder bed is moving or not and the other one is used to find person attentiveness
+Output: The model sends the alarm values to the timer function based on person attentiveness
 Requirements:
 This function shall perform the following:
 1)This function calls the track method passing the input feed of camera located over the cylinder bed, the track function returns whether the cylinder bed is moving or not.
@@ -34,9 +34,11 @@ import Roi1 as Roi
 import Motion
 import View
 import posenet
+#import RTSP
 import tracker_model
-import XY_frame as XY_track
+import XY_2ndROI as XY_track
 import Timer_single_1 as Timer
+#import Angle
 import error
 import Health_Api
 import screening2
@@ -93,7 +95,7 @@ class camera():
 
 if __name__ == '__main__':
 	try:
-		#cam = cv2.VideoCapture("/media/smartcow/LFS/temp/20201010183402.mp4")
+		#cam = cv2.VideoCapture("/media/smartcow/LFS/video_storage/2020_10_30/ch.avi")
 		sess=tf.compat.v1.Session()
 		model_cfg, model_outputs = posenet.load_model(101, sess)
 		output_stride = model_cfg['output_stride']
@@ -126,7 +128,7 @@ if __name__ == '__main__':
 					displacement_bwd_result.squeeze(axis=0),
 					output_stride=output_stride,
 					max_pose_detections=5,
-					min_pose_score=0.2)
+					min_pose_score=0.1)
 				keypoint_coords *= output_scale
                 
 				view_coords,view_scores,number_roi=Roi.roi_fun(keypoint_coords,keypoint_scores)
@@ -187,9 +189,8 @@ if __name__ == '__main__':
 				cv2.imshow("frame",overlay_image)
 				if cv2.waitKey(1) & 0xFF == ord('q'):
 					break'''
-                        elif moving == False and prev_moving == True:
-                                Timer.reset()
-	
+			elif moving == False and prev_moving == True:
+				Timer.reset()
 			if ht_time < datetime.now():
 				health = Thread(target=Diagnostics,args=())
 				health.start()
