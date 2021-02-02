@@ -1,1 +1,1 @@
-Error in loading camera feed :: 2021-01-06 08:30:30.791382 :: [Errno -2] Name or service not known ****
+{'error_code': 22, 'error_algo': 'Error in Screening', 'error_time': '2021-01-28 09:18:16'}

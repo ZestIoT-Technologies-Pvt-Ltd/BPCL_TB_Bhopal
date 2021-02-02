@@ -35,37 +35,34 @@ import View
 import posenet
 #import RTSP
 import tracker_model
-import XY_2ndROI as XY_track
-import Timer_single_1 as Timer
+import XY_frame as XY_track
+import Timer_network as Timer
 #import Angle
 import error
-import Health_Api
-import screening2
-import screening1
-import water_check
-
-screening1.create()
-screening2.create()
-screening1.connect()
-screening2.connect()
+import Health_Api_er as Health_Api
+from stream import VideoStream
+sc1=VideoStream('edgeai.local',8097)
+sc2=VideoStream('edgeai.local',8096)
+sc1.connect()
+sc2.connect()
 config="/home/smartcow/BPCL/BPCL_final/BPCL_config.json"
 with open(config) as json_data:
 	info=json.load(json_data)
-	cam1,cam2,first_check,last_check= info["camera1"],info["camera2"],info["first_check"],info["last_check"]
+	cam1,cam2,first_check,last_check,reset_time= info["camera1"],info["camera2"],info["first_check"],info["last_check"],info["reset_time"]
 # initializing tracker variables
 count,prev_moving,moving,track_dict,st_dict,cyl = 0,False, False, {},0,0
 first_check = datetime.strptime(first_check,"%H:%M:%S")
 last_check = datetime.strptime(last_check,"%H:%M:%S")
 wt_flag =0
+cyl_reset=0
 idle_time = 0
-
 def Diagnostics():
 	try:
 		print("Inside Diagnostics function")
 		Health_Api.apicall()
 	except Exception as e:
 		print(str(e))
-		error("6",str(e))
+		error.raised(16,"Error in Health API")
 
 class camera():
 
@@ -107,12 +104,11 @@ if __name__ == '__main__':
 		output_stride = model_cfg['output_stride']
 		darknet_image_T,network_T,class_names_T=tracker_model.load_model()
 		Timer.reset()
-		water_check.water_rectify()
 		print("Tracker model loaded")
 		cam1 = camera(cam1)
 		time.sleep(1)
-		#cam2 = camera(cam2)
-		#time.sleep(1)
+		cam2 = camera(cam2)
+		time.sleep(1)
 		ht_time=datetime.now()
 		#kk = 0
 		while True:
@@ -121,15 +117,15 @@ if __name__ == '__main__':
 				#print("loop start",loop_start_time)
 				img1 = cam1.get_frame()
 				img1 = cv2.resize(img1,(1280,720))
-				#img2 = cam2.get_frame()
-				#img2 = cv2.resize(img2,(1280,720))
+				img2 = cam2.get_frame()
+				img2 = cv2.resize(img2,(1280,720))
 				#ret,img1 = cam.read()
 			except Exception as e:
-				print(str(e))
-				error.raised(1,"Error while reading from camera")
-			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img1,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
+				error.raised(1,"Error in Reading from Camera")
+			moving,img2,track_dict,st_dict,count,cyl = XY_track.track(img2,darknet_image_T,network_T,class_names_T,track_dict,st_dict,count,cyl,moving)
 			#moving =True
 			if moving == True:
+				cyl_reset =0 
 				if idle_time != 0:
 					#print(idle_time,type(idle_time))
 					off_time = int((datetime.now() - idle_time).total_seconds())
@@ -207,19 +203,23 @@ if __name__ == '__main__':
 				if cv2.waitKey(1) & 0xFF == ord('q'):
 					break'''
 			elif moving == False and prev_moving == True:
+				cyl_reset = datetime.now()+timedelta(seconds = reset_time)
 				idle_time = datetime.now()
 			elif moving == False and prev_moving ==False and idle_time != 0:
 				if datetime.now() > idle_time + timedelta(seconds = 60):
 					Timer.continue_event(60)
 					idle_time =datetime.now()
+			if cyl_reset !=0:
+				if datetime.now() > cyl_reset and moving == False:
+					Timer.reset()
 			if ht_time < datetime.now():
 				health = Thread(target=Diagnostics,args=())
 				health.start()
 				ht_time=datetime.now()+timedelta(minutes=5)
-			screening1.screening(img1)
-			screening2.screening(img2)
+			sc1.screening(img1)
+			sc2.screening(img2)
 			tf.keras.backend.clear_session()
-			loop_end_time = datetime.now()
+			"""loop_end_time = datetime.now()
 			if (loop_end_time.time() >= first_check.time() and loop_end_time.time() < last_check.time() and moving == True):
 				if wt_flag == 0:
 					water_check.water_quality(img1)
@@ -229,12 +229,11 @@ if __name__ == '__main__':
 					water_check.water_quality(img1)
 					wt_time= datetime.now()+timedelta(minutes=1)
 					wt_flag=wt_flag+1
-				elif wt_flag >= 10:
+				if wt_flag >= 9:
 					first_check=first_check+timedelta(minutes=60)
 					wt_flag = 0
 					wat_check = 0
-					wat_rectify = 0
-
+					wat_rectify = 0"""
 			loop_end_time = datetime.now()
 			while(int((loop_end_time - loop_start_time).total_seconds()*1000) < 300 ):
 				loop_end_time = datetime.now()
@@ -245,4 +244,4 @@ if __name__ == '__main__':
 	except Exception as e:
 		print(str(e))
 		traceback.print_exc()
-		error.raised(1,"Error in Main function")
+		error.raised(1,"Error in main Script")

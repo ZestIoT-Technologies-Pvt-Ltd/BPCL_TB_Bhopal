@@ -3,7 +3,8 @@ from datetime import datetime
 config = "/home/smartcow/BPCL/BPCL_final/error.json"
 error_state="/home/smartcow/BPCL/BPCL_final/error_code.txt"
 error_code = 0
-def raised(er,error_string):
+def raised(er,er_string):
+	global error_code
 	try:
 		error_code = error_code | er
 		with open(error_state,'w') as f:
@@ -12,3 +13,4 @@ def raised(er,error_string):
 			f.close()
 	except Exception as e:
 		print (str(e))
+

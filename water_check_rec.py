@@ -87,3 +87,4 @@ def water_rectify():
 		print("error in event_call function")
 		error.raised(8,"Error in API")
 
+

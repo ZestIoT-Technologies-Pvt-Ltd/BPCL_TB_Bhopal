@@ -1,4 +1,6 @@
 import time
+import json
+import subprocess
 from sockets import ClientSocket
 from pynng import Timeout
 from datetime import datetime, timedelta
@@ -18,32 +20,35 @@ Requirements
 4) captures last rebbot time and device uptime.
 5) Sends all the information to Pi using sockets.
 """
-global er
-er=0
+
 error_file="/home/smartcow/BPCL/BPCL_final/error_code.txt"
 last_event="/home/smartcow/BPCL/BPCL_final/last_event.txt"
 def health():
         try:
-                with open(last_event,'r+') as event:
-                        j1=event.readline()
-                        #print (j1)
-                        j1=j1.split(" :: ")
-                        event_code=j1[0]
-                        event_time=j1[-1].strip()
-                    #print(event_code,event_time)
+            with open(last_event,'r+') as event:
+                j1=event.readline()
+                #print (j1)
+                j1=j1.split(" :: ")
+                event_code=j1[0]
+                event_time=j1[-1].strip()
+                #print(event_code,event_time)
         except Exception as e:
-                print(str(e))
+            print(str(e))
         try:
-                with open(error_file,'r+') as f:
-                        j= f.readlines()
-                        #print(j[0])
-                        j = j[0].split(" :: ")
-                        error =j[-1]
-                        error_algo = j[0]
-                        error_time = j[1]
-                        #print(" Last Error: {} has occured in {} part of the script at {}".format(error,error_algo,error_time))
+            with open(error_file,'r+') as f:
+                j= f.readlines()
+                j=j[0].replace("'",'"')
+                #print(j[0])
+                er_str=json.loads(j)
+                error = er_str["error_code"]
+                error_algo = er_str["error_algo"]
+                error_time = er_str["error_time"]
+                #print(" Last Error: {} has occured in {} part of the script at {}".format(error,error_algo,error_time))
         except Exception as e:
-                print(str(e))
+            error ="nothing"
+            error_algo="NA"
+            error_time = str(datetime.now())
+            print(str(e))
         tegra=Popen(['/home/smartcow/tegrastats'],stdout=PIPE)
         time.sleep(7)
         tegra.kill()
@@ -57,9 +62,9 @@ def health():
         #print(cpu)
         cpu1,cpu2,cpu3,cpu4,cpu5,cpu6=cpu[0][1:],cpu[1],cpu[2],cpu[3],cpu[4],cpu[5][:-1]
         if 'GR3D_FREQ' in info:
-                gpu=info[13]
+            gpu=info[13]
         else:
-                gpu ="run the command with sudo to get GPU readings"
+            gpu ="run the command with sudo to get GPU readings"
         #print("Percentage used and Frquency of different cores\nGPU: {}\nCPU 1: {}\nCPU 2: {}\nCPU 3: {}\nCPU 4: {}\nCPU 5: {}\nCPU 6: {}\n".format(gpu,cpu1,cpu2,cpu3,cpu4,cpu5,cpu6))
         CPU=info[18].split("@")[-1]
         AO=info[14].split("@")[-1]
@@ -81,9 +86,9 @@ def health():
         #print (avail_memory[7])
         #memory = avail_memory.split(" ")[-2]
         if len(avail_memory) > 15:
-                ext_memory =avail_memory[-2]
+            ext_memory =avail_memory[-2]
         else:
-                ext_memory="None"
+            ext_memory="None"
         #print ("Temperature of different components\nBCPU: {}\nMCPU: {}\nGPU: {}\nPLL: {}\nTboard: {}\nTdiode: {}\nPMIC: {}\nthermal: {}\n".format(BCPU,MCPU,GPU_t,PLL_t,Tboard,Tdiode,PMIC,thermal))
         last_start=Popen(['tuptime','--list'],stdout=PIPE)
         last_start=(last_start.communicate()[0]).decode('ascii')
@@ -98,15 +103,11 @@ def health():
         return data
 
 def apicall():
-    global er
     try:
         sc = ClientSocket(device_id=str('BPCL_BPL_NX_0001'))
     except Exception as e:
-        er=er+1
-        if er < 4:
-            time.sleep(1)
-            apicall(event)
-        error.raised("7",str(e))
+        print(str(e))
+        error.raised(4,"Error while creating socket")
 
     #while True:
     try:
@@ -119,8 +120,29 @@ def apicall():
         print(msg)
         if int(msg["data"]["status"]) == 200:
             print("API success")
+            net_event(sc)
         else:
-            error.raised("8","API failed")
+            error.raised(8,"API failed")
     except Exception as e:
-        error.raised("8",str(e))
-#apicall()
+        print(str(e))
+        error.raised(16,"Error while calling Health Api")
+
+def net_event(sc):
+    try:
+        print("************************************* Checking previous events *****************************")
+        with open("/home/smartcow/BPCL/BPCL_final/net_event.txt","r+") as f:
+            for i in f.readlines():
+                i=i.replace("'",'"')
+                print(i)
+                net_line = json.loads(i)
+                data = net_line["data"]
+                event = net_line["event"]
+                logdate = net_line["data"]["event_time"]
+                sc.send(time_stamp=logdate, message_type=event, data=data)
+                msg = sc.receive()
+                print(msg)
+                subprocess.call(["sed -i 1d /home/smartcow/BPCL/BPCL_final/net_event.txt"],shell=True)
+    except Exception as e:
+        print(str(e))
+        error.raised(32,"Error in Backup API call")
+apicall()
