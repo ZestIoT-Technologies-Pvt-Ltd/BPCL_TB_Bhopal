@@ -387,6 +387,8 @@ def reset():
 	with open(event_file, 'w') as efile:
 		efile.write("EVENT_ALL_OFF ::"+ datetime.now().strftime("%Y_%m_%dT%H-%M-%S"))
 		event_call("Reset",None,None)
+		event_call("EVENT22_OFF",None,None)
+		event_call("EVENT23_OFF",None,None)
 	Ptimer,Dtimer,Mtimer=0,0,0
 
 

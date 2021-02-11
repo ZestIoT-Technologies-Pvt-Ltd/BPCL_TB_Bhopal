@@ -15,13 +15,13 @@
 	"vid_duration":20,
 	"event_file":"/home/smartcow/BPCL/BPCL_final/last_event.txt",
 	"error_file":"/home/smartcow/BPCL/BPCL_final/error_file.txt",
+	"reset_time":240,
 	"net_file":"/home/smartcow/BPCL/BPCL_final/net_event.txt",
 	"gpu_path":"/media/smartcow/LFS/video_storage/",
-	"reset_time":300,
 	"temp_folder":"/media/smartcow/LFS/temp_video_storage/",
 	"xy_tracker":{
-		"configPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov4-tiny.cfg",
-		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/yolov4-tiny_best.weights",
+		"configPath":"/home/smartcow/BPCL/BPCL_final/tracker/model_05_02_2021/yolov4-tiny_bhopal.cfg",
+		"weightPath":"/home/smartcow/BPCL/BPCL_final/tracker/model_05_02_2021/yolov4-tiny_bhopal_final.weights",
 		"metaPath":"/home/smartcow/BPCL/BPCL_final/tracker/obj.data",
 		"alert_frame":20
 	},

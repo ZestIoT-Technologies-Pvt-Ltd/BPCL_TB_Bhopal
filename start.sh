@@ -5,7 +5,7 @@ start_time=$(jq '.Plant_start_time' UI_parameters.json | tr -d \")
 end=$(date -d $end_time +%s)
 start=$(date -d $start_time +%s)
 now=$(date +%s)
-Process1=$(pgrep -f -x "python3 BPCL_ch_final_sc.py")
+Process1=$(pgrep -f -x "python3 BPCL_ch_final_cyl.py")
 if [ $now -gt $start -a $now -lt $end ]
 then
 	echo "start"
@@ -13,7 +13,7 @@ then
 		echo "BPCL program is running"
 	else
 		echo "Starting BPCL process"
-		python3 BPCL_ch_final_sc.py  >> /media/smartcow/LFS/BPCL.log
+		python3 BPCL_ch_final_cyl.py  >> /media/smartcow/LFS/BPCL.log
 	fi
 else
 	echo "stop"
