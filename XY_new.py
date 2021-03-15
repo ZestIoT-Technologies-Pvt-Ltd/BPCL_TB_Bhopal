@@ -94,10 +94,10 @@ def update_list():
 			current_dict[key]['xco']=prev_dict[key]['xco']
 			current_dict[key]['yco']=prev_dict[key]['yco']
 			current_dict[key]['state']='moving left'
-		else:
+		"""else:
 			current_dict[key]['state'] == 'moving right'
 			total_count=total_count+1
-			break
+			break"""
 		
 
 
@@ -153,7 +153,7 @@ def track(img,darknet_image,network,class_names,moving):
 			moving = True
 			count_frame =0
 			total_count =0
-		if count_frame > 5 and total_count ==0 :
+		if count_frame > 9 and total_count ==0 :
 			moving = False
 			count_frame = 0
 			total_count = 0
